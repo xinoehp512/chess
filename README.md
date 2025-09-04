@@ -1,4 +1,4 @@
-# ♕ BYU CS 240 Chess
+# ♕ BYU CS 240 Chess Ryan Richards
 
 This project demonstrates mastery of proper software design, client/server architecture, networking using HTTP and WebSocket, database persistence, unit testing, serialization, and security.
 
