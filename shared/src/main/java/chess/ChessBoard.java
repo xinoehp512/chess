@@ -21,8 +21,9 @@ public class ChessBoard {
             "pppppppp",
             "rnbqkbnr",
     };
+
     public ChessBoard() {
-        
+
     }
 
     /**
@@ -32,7 +33,7 @@ public class ChessBoard {
      * @param piece    the piece to add
      */
     public void addPiece(ChessPosition position, ChessPiece piece) {
-        board[position.getRow()-1][position.getColumn()-1]=piece;
+        board[position.getRow() - 1][position.getColumn() - 1] = piece;
     }
 
     /**
@@ -43,7 +44,7 @@ public class ChessBoard {
      * position
      */
     public ChessPiece getPiece(ChessPosition position) {
-        return board[position.getRow()-1][position.getColumn()-1];
+        return board[position.getRow() - 1][position.getColumn() - 1];
     }
 
     /**
@@ -52,27 +53,27 @@ public class ChessBoard {
      */
     public void resetBoard() {
         for (int row = 0; row < 8; row++) {
-            String pieceRow=ChessBoard.start_template[row];
+            String pieceRow = ChessBoard.start_template[row];
             for (int col = 0; col < 8; col++) {
                 char piece_char = pieceRow.charAt(col);
                 ChessPiece piece;
 
-                if(piece_char==' '){
-                    piece=null;
+                if (piece_char == ' ') {
+                    piece = null;
                 } else {
-                    chess.ChessGame.TeamColor color = Character.isUpperCase(piece_char) ? ChessGame.TeamColor.WHITE: ChessGame.TeamColor.BLACK;
-                    ChessPiece.PieceType type= switch (Character.toLowerCase(piece_char)) {
-                        case 'p'-> ChessPiece.PieceType.PAWN;
-                        case 'b'-> ChessPiece.PieceType.BISHOP;
-                        case 'n'-> ChessPiece.PieceType.KNIGHT;
-                        case 'r'-> ChessPiece.PieceType.ROOK;
-                        case 'q'-> ChessPiece.PieceType.QUEEN;
-                        case 'k'-> ChessPiece.PieceType.KING;
+                    chess.ChessGame.TeamColor color = Character.isUpperCase(piece_char) ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
+                    ChessPiece.PieceType type = switch (Character.toLowerCase(piece_char)) {
+                        case 'p' -> ChessPiece.PieceType.PAWN;
+                        case 'b' -> ChessPiece.PieceType.BISHOP;
+                        case 'n' -> ChessPiece.PieceType.KNIGHT;
+                        case 'r' -> ChessPiece.PieceType.ROOK;
+                        case 'q' -> ChessPiece.PieceType.QUEEN;
+                        case 'k' -> ChessPiece.PieceType.KING;
                         default -> null;
                     };
-                    piece = new ChessPiece(color,type);
+                    piece = new ChessPiece(color, type);
                 }
-                board[row][col]=piece;
+                board[row][col] = piece;
             }
         }
     }
@@ -100,7 +101,7 @@ public class ChessBoard {
                     builder.append(" ");
                     continue;
                 }
-                char piece_char = switch(piece.type) {
+                char piece_char = switch (piece.type) {
                     case ChessPiece.PieceType.PAWN -> 'p';
                     case ChessPiece.PieceType.BISHOP -> 'b';
                     case ChessPiece.PieceType.KNIGHT -> 'n';
@@ -108,8 +109,8 @@ public class ChessBoard {
                     case ChessPiece.PieceType.QUEEN -> 'q';
                     case ChessPiece.PieceType.KING -> 'k';
                 };
-                if (piece.color== ChessGame.TeamColor.WHITE) {
-                    piece_char=Character.toUpperCase(piece_char);
+                if (piece.color == ChessGame.TeamColor.WHITE) {
+                    piece_char = Character.toUpperCase(piece_char);
                 }
                 builder.append(piece_char);
             }
@@ -124,5 +125,11 @@ public class ChessBoard {
 
     public ChessPiece[][] getBoard() {
         return board;
+    }
+
+    public boolean positionValid(ChessPosition targetPos) {
+        int row = targetPos.getRow();
+        int col = targetPos.getColumn();
+        return 0 <= row && row < 8 && 0 <= col && col <= 8;
     }
 }

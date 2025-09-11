@@ -12,11 +12,11 @@ import java.util.Objects;
  */
 public class ChessPiece {
     ChessGame.TeamColor color;
-    ChessPiece.PieceType type;
+    PieceType type;
 
-    public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
-        color=pieceColor;
-        this.type=type;
+    public ChessPiece(ChessGame.TeamColor pieceColor, PieceType type) {
+        color = pieceColor;
+        this.type = type;
     }
 
     /**
@@ -53,8 +53,43 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        return new HashSet<ChessMove>();
+        HashSet<ChessMove> moves = switch (type) {
+            case KING -> getKingMoves(board, myPosition);
+            case QUEEN -> getKingMoves(board, myPosition);
+            case BISHOP -> getKingMoves(board, myPosition);
+            case KNIGHT -> getKingMoves(board, myPosition);
+            case ROOK -> getKingMoves(board, myPosition);
+            case PAWN -> getKingMoves(board, myPosition);
+        };
+
+        return moves;
     }
+
+    private HashSet<ChessMove> getKingMoves(ChessBoard board, ChessPosition myPosition) {
+        int row = myPosition.getRow();
+        int col = myPosition.getColumn();
+        HashSet<ChessMove> moves = new HashSet<ChessMove>();
+
+        for (int row_off = -1; row_off <= 1; row_off++) {
+            for (int col_off = -1; col_off <= 1; col_off++) {
+                if (row_off == 0 && col_off == 0) {
+                    continue;
+                }
+                int new_row = row + row_off;
+                int new_col = col + col_off;
+                var target_pos = new ChessPosition(new_row, new_col);
+                if (!board.positionValid(target_pos)) {
+                    continue;
+                }
+                var target_piece = board.getPiece(target_pos);
+                if (target_piece == null || target_piece.color!=this.color) {
+                    moves.add(new ChessMove(myPosition,target_pos,null));
+                }
+            }
+        }
+        return moves;
+    }
+
 
     @Override
     public boolean equals(Object o) {
