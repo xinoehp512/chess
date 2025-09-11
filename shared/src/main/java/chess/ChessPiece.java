@@ -55,13 +55,19 @@ public class ChessPiece {
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         HashSet<ChessMove> moves = switch (type) {
             case KING -> getKingMoves(board, myPosition);
-            case QUEEN -> getKingMoves(board, myPosition);
+            case QUEEN -> getQueenMoves(board, myPosition);
             case BISHOP -> getBishopMoves(board, myPosition);
             case KNIGHT -> getKingMoves(board, myPosition);
             case ROOK -> getRookMoves(board, myPosition);
             case PAWN -> getKingMoves(board, myPosition);
         };
 
+        return moves;
+    }
+
+    private HashSet<ChessMove> getQueenMoves(ChessBoard board, ChessPosition myPosition) {
+        HashSet<ChessMove> moves=getBishopMoves(board,myPosition);
+        moves.addAll(getRookMoves(board, myPosition));
         return moves;
     }
 
