@@ -57,7 +57,7 @@ public class ChessPiece {
             case KING -> getKingMoves(board, myPosition);
             case QUEEN -> getQueenMoves(board, myPosition);
             case BISHOP -> getBishopMoves(board, myPosition);
-            case KNIGHT -> getKingMoves(board, myPosition);
+            case KNIGHT -> getKnightMoves(board, myPosition);
             case ROOK -> getRookMoves(board, myPosition);
             case PAWN -> getKingMoves(board, myPosition);
         };
@@ -65,8 +65,43 @@ public class ChessPiece {
         return moves;
     }
 
+    private HashSet<ChessMove> getKnightMoves(ChessBoard board, ChessPosition myPosition) {
+        int row = myPosition.getRow();
+        int col = myPosition.getColumn();
+        HashSet<ChessMove> moves = new HashSet<ChessMove>();
+        int[][] moveWidgets = {
+                {1, 2}, {2, 1},
+                {1, -2}, {2, -1},
+                {-1, 2}, {-2, 1},
+                {-1, -2}, {-2, -1},
+        };
+        for (int[] widget : moveWidgets) {
+            int row_move = widget[0];
+            int col_move = widget[1];
+            for (int dist = 1; dist < 2; dist++) {
+                int new_row = row + row_move * dist;
+                int new_col = col + col_move * dist;
+                var target_pos = new ChessPosition(new_row, new_col);
+                if (!board.positionValid(target_pos)) {
+                    continue;
+                }
+                var target_piece = board.getPiece(target_pos);
+                if (target_piece == null) {
+                    moves.add(new ChessMove(myPosition, target_pos, null));
+                } else {
+                    if (target_piece.color != this.color) {
+                        moves.add(new ChessMove(myPosition, target_pos, null));
+                    }
+                    break;
+                }
+            }
+
+        }
+        return moves;
+    }
+
     private HashSet<ChessMove> getQueenMoves(ChessBoard board, ChessPosition myPosition) {
-        HashSet<ChessMove> moves=getBishopMoves(board,myPosition);
+        HashSet<ChessMove> moves = getBishopMoves(board, myPosition);
         moves.addAll(getRookMoves(board, myPosition));
         return moves;
     }
@@ -77,8 +112,8 @@ public class ChessPiece {
         HashSet<ChessMove> moves = new HashSet<ChessMove>();
         int[][] moveWidgets = {{0, 1}, {0, -1}, {1, 0}, {-1, 0}};
         for (int[] widget : moveWidgets) {
-            int row_move=widget[0];
-            int col_move=widget[1];
+            int row_move = widget[0];
+            int col_move = widget[1];
             for (int dist = 1; dist < 8; dist++) {
                 int new_row = row + row_move * dist;
                 int new_col = col + col_move * dist;
