@@ -56,12 +56,40 @@ public class ChessPiece {
         HashSet<ChessMove> moves = switch (type) {
             case KING -> getKingMoves(board, myPosition);
             case QUEEN -> getKingMoves(board, myPosition);
-            case BISHOP -> getKingMoves(board, myPosition);
+            case BISHOP -> getBishopMoves(board, myPosition);
             case KNIGHT -> getKingMoves(board, myPosition);
             case ROOK -> getKingMoves(board, myPosition);
             case PAWN -> getKingMoves(board, myPosition);
         };
 
+        return moves;
+    }
+
+    private HashSet<ChessMove> getBishopMoves(ChessBoard board, ChessPosition myPosition) {
+        int row = myPosition.getRow();
+        int col = myPosition.getColumn();
+        HashSet<ChessMove> moves = new HashSet<ChessMove>();
+        for (int row_move = -1; row_move <= 1; row_move += 2) {
+            for (int col_move = -1; col_move <= 1; col_move += 2) {
+                for (int dist = 1; dist < 8; dist++) {
+                    int new_row = row + row_move * dist;
+                    int new_col = col + col_move * dist;
+                    var target_pos = new ChessPosition(new_row, new_col);
+                    if (!board.positionValid(target_pos)) {
+                        continue;
+                    }
+                    var target_piece = board.getPiece(target_pos);
+                    if (target_piece == null) {
+                        moves.add(new ChessMove(myPosition, target_pos, null));
+                    } else {
+                        if (target_piece.color != this.color) {
+                            moves.add(new ChessMove(myPosition, target_pos, null));
+                        }
+                        break;
+                    }
+                }
+            }
+        }
         return moves;
     }
 
@@ -82,8 +110,8 @@ public class ChessPiece {
                     continue;
                 }
                 var target_piece = board.getPiece(target_pos);
-                if (target_piece == null || target_piece.color!=this.color) {
-                    moves.add(new ChessMove(myPosition,target_pos,null));
+                if (target_piece == null || target_piece.color != this.color) {
+                    moves.add(new ChessMove(myPosition, target_pos, null));
                 }
             }
         }

@@ -130,6 +130,6 @@ public class ChessBoard {
     public boolean positionValid(ChessPosition targetPos) {
         int row = targetPos.getRow();
         int col = targetPos.getColumn();
-        return 0 <= row && row < 8 && 0 <= col && col <= 8;
+        return 0 < row && row <= 8 && 0 < col && col <= 8;
     }
 }
