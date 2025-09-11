@@ -1,5 +1,6 @@
 package chess;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
@@ -53,7 +54,8 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        HashSet<ChessMove> moves = switch (type) {
+
+        return switch (type) {
             case KING -> getKingMoves(board, myPosition);
             case QUEEN -> getQueenMoves(board, myPosition);
             case BISHOP -> getBishopMoves(board, myPosition);
@@ -61,37 +63,12 @@ public class ChessPiece {
             case ROOK -> getRookMoves(board, myPosition);
             case PAWN -> getPawnMoves(board, myPosition);
         };
-
-        return moves;
     }
 
-    private HashSet<ChessMove> getPawnMoves(ChessBoard board, ChessPosition myPosition) {
-
-        int yDirection = 0;
-        int doubleStepRow = 0;
-        int promotionRow = 0;
-
-        PieceType[] promotionPieces = {PieceType.BISHOP,PieceType.ROOK,PieceType.KNIGHT,PieceType.QUEEN};
-
-        switch (this.color) {
-            case WHITE -> {
-                yDirection = 1;
-                doubleStepRow = 2;
-                promotionRow = 8;
-            }
-            case BLACK -> {
-                yDirection = -1;
-                doubleStepRow = 7;
-                promotionRow = 1;
-            }
-        }
-
+    private ArrayList<ChessPosition> getMoveWidgetPositions(ChessBoard board, ChessPosition myPosition, int[][] moveWidgets, int moveDistance, boolean allowMoves, boolean allowCaptures) {
+        ArrayList<ChessPosition> positions = new ArrayList<>();
         int row = myPosition.getRow();
         int col = myPosition.getColumn();
-        HashSet<ChessMove> moves = new HashSet<ChessMove>();
-        int[][] moveWidgets = {{yDirection, 0}};
-        int moveDistance = row == doubleStepRow ? 2 : 1;
-
         for (int[] widget : moveWidgets) {
             int row_move = widget[0];
             int col_move = widget[1];
@@ -104,83 +81,81 @@ public class ChessPiece {
                 }
                 var target_piece = board.getPiece(target_pos);
                 if (target_piece == null) {
-                    if (new_row != promotionRow) {
-                        moves.add(new ChessMove(myPosition, target_pos, null));
-                    } else {
-                        for (var promotionPiece : promotionPieces) {
-                            moves.add(new ChessMove(myPosition, target_pos, promotionPiece));
-                        }
+                    if (allowMoves) {
+                        positions.add(target_pos);
                     }
                 } else {
+                    if (target_piece.color != this.color && allowCaptures) {
+                        positions.add(target_pos);
+                    }
                     break;
                 }
             }
 
         }
+        return positions;
+    }
 
-        int[][] moveWidgets2 = {{ yDirection,1},{yDirection,-1}};
+    private HashSet<ChessMove> getPawnMoves(ChessBoard board, ChessPosition myPosition) {
 
-        for (int[] widget : moveWidgets2) {
-            int row_move = widget[0];
-            int col_move = widget[1];
-            for (int dist = 1; dist <= 1; dist++) {
-                int new_row = row + row_move * dist;
-                int new_col = col + col_move * dist;
-                var target_pos = new ChessPosition(new_row, new_col);
-                if (!board.positionValid(target_pos)) {
-                    continue;
-                }
-                var target_piece = board.getPiece(target_pos);
-                if (target_piece != null && target_piece.color!=this.color) {
-                    if (new_row != promotionRow) {
-                        moves.add(new ChessMove(myPosition, target_pos, null));
-                    } else {
-                        for (var promotionPiece : promotionPieces) {
-                            moves.add(new ChessMove(myPosition, target_pos, promotionPiece));
-                        }
-                    }
-                } else {
-                    break;
-                }
+        int yDirection = 0;
+        int doubleStepRow = 0;
+        int promotionRow = 0;
+
+
+        switch (this.color) {
+            case WHITE -> {
+                yDirection = 1;
+                doubleStepRow = 2;
+                promotionRow = 7;
             }
-
+            case BLACK -> {
+                yDirection = -1;
+                doubleStepRow = 7;
+                promotionRow = 2;
+            }
         }
+
+        int row = myPosition.getRow();
+        HashSet<ChessMove> moves = new HashSet<>();
+        int[][] moveWidgets = {{yDirection, 0}};
+        int[][] moveWidgets2 = {{yDirection, 1}, {yDirection, -1}};
+        int moveDistance = row == doubleStepRow ? 2 : 1;
+
+        var positions = getMoveWidgetPositions(board, myPosition, moveWidgets, moveDistance, true, false);
+        positions.addAll(getMoveWidgetPositions(board, myPosition, moveWidgets2, moveDistance, false, true));
+
+        PieceType[] promotionPieces = {PieceType.BISHOP, PieceType.ROOK, PieceType.KNIGHT, PieceType.QUEEN};
+        for (var target_pos : positions) {
+            if (row==promotionRow){
+                for (var piece : promotionPieces) {
+                    moves.add(new ChessMove(myPosition, target_pos, piece));
+                }
+            } else {
+                moves.add(new ChessMove(myPosition, target_pos, null));
+            }
+        }
+
+
+
 
         return moves;
     }
 
     private HashSet<ChessMove> getKnightMoves(ChessBoard board, ChessPosition myPosition) {
-        int row = myPosition.getRow();
-        int col = myPosition.getColumn();
-        HashSet<ChessMove> moves = new HashSet<ChessMove>();
+        HashSet<ChessMove> moves = new HashSet<>();
         int[][] moveWidgets = {
                 {1, 2}, {2, 1},
                 {1, -2}, {2, -1},
                 {-1, 2}, {-2, 1},
                 {-1, -2}, {-2, -1},
         };
-        for (int[] widget : moveWidgets) {
-            int row_move = widget[0];
-            int col_move = widget[1];
-            for (int dist = 1; dist < 2; dist++) {
-                int new_row = row + row_move * dist;
-                int new_col = col + col_move * dist;
-                var target_pos = new ChessPosition(new_row, new_col);
-                if (!board.positionValid(target_pos)) {
-                    continue;
-                }
-                var target_piece = board.getPiece(target_pos);
-                if (target_piece == null) {
-                    moves.add(new ChessMove(myPosition, target_pos, null));
-                } else {
-                    if (target_piece.color != this.color) {
-                        moves.add(new ChessMove(myPosition, target_pos, null));
-                    }
-                    break;
-                }
-            }
+        var positions = getMoveWidgetPositions(board, myPosition, moveWidgets, 1, true, true);
 
+        for (var target_pos : positions) {
+            moves.add(new ChessMove(myPosition, target_pos, null));
         }
+
         return moves;
     }
 
@@ -191,84 +166,34 @@ public class ChessPiece {
     }
 
     private HashSet<ChessMove> getRookMoves(ChessBoard board, ChessPosition myPosition) {
-        int row = myPosition.getRow();
-        int col = myPosition.getColumn();
-        HashSet<ChessMove> moves = new HashSet<ChessMove>();
+        HashSet<ChessMove> moves = new HashSet<>();
         int[][] moveWidgets = {{0, 1}, {0, -1}, {1, 0}, {-1, 0}};
-        for (int[] widget : moveWidgets) {
-            int row_move = widget[0];
-            int col_move = widget[1];
-            for (int dist = 1; dist < 8; dist++) {
-                int new_row = row + row_move * dist;
-                int new_col = col + col_move * dist;
-                var target_pos = new ChessPosition(new_row, new_col);
-                if (!board.positionValid(target_pos)) {
-                    continue;
-                }
-                var target_piece = board.getPiece(target_pos);
-                if (target_piece == null) {
-                    moves.add(new ChessMove(myPosition, target_pos, null));
-                } else {
-                    if (target_piece.color != this.color) {
-                        moves.add(new ChessMove(myPosition, target_pos, null));
-                    }
-                    break;
-                }
-            }
+        var positions = getMoveWidgetPositions(board, myPosition, moveWidgets, 7, true, true);
 
+        for (var target_pos : positions) {
+            moves.add(new ChessMove(myPosition, target_pos, null));
         }
         return moves;
     }
 
     private HashSet<ChessMove> getBishopMoves(ChessBoard board, ChessPosition myPosition) {
-        int row = myPosition.getRow();
-        int col = myPosition.getColumn();
-        HashSet<ChessMove> moves = new HashSet<ChessMove>();
-        for (int row_move = -1; row_move <= 1; row_move += 2) {
-            for (int col_move = -1; col_move <= 1; col_move += 2) {
-                for (int dist = 1; dist < 8; dist++) {
-                    int new_row = row + row_move * dist;
-                    int new_col = col + col_move * dist;
-                    var target_pos = new ChessPosition(new_row, new_col);
-                    if (!board.positionValid(target_pos)) {
-                        continue;
-                    }
-                    var target_piece = board.getPiece(target_pos);
-                    if (target_piece == null) {
-                        moves.add(new ChessMove(myPosition, target_pos, null));
-                    } else {
-                        if (target_piece.color != this.color) {
-                            moves.add(new ChessMove(myPosition, target_pos, null));
-                        }
-                        break;
-                    }
-                }
-            }
+        HashSet<ChessMove> moves = new HashSet<>();
+        int[][] moveWidgets = {{1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
+        var positions = getMoveWidgetPositions(board, myPosition, moveWidgets, 7, true, true);
+
+        for (var target_pos : positions) {
+            moves.add(new ChessMove(myPosition, target_pos, null));
         }
         return moves;
     }
 
     private HashSet<ChessMove> getKingMoves(ChessBoard board, ChessPosition myPosition) {
-        int row = myPosition.getRow();
-        int col = myPosition.getColumn();
-        HashSet<ChessMove> moves = new HashSet<ChessMove>();
+        HashSet<ChessMove> moves = new HashSet<>();
+        int[][] moveWidgets = {{1, 1}, {1, -1}, {-1, 1}, {-1, -1}, {0, 1}, {0, -1}, {1, 0}, {-1, 0}};
+        var positions = getMoveWidgetPositions(board, myPosition, moveWidgets, 1, true, true);
 
-        for (int row_off = -1; row_off <= 1; row_off++) {
-            for (int col_off = -1; col_off <= 1; col_off++) {
-                if (row_off == 0 && col_off == 0) {
-                    continue;
-                }
-                int new_row = row + row_off;
-                int new_col = col + col_off;
-                var target_pos = new ChessPosition(new_row, new_col);
-                if (!board.positionValid(target_pos)) {
-                    continue;
-                }
-                var target_piece = board.getPiece(target_pos);
-                if (target_piece == null || target_piece.color != this.color) {
-                    moves.add(new ChessMove(myPosition, target_pos, null));
-                }
-            }
+        for (var target_pos : positions) {
+            moves.add(new ChessMove(myPosition, target_pos, null));
         }
         return moves;
     }
