@@ -59,8 +59,92 @@ public class ChessPiece {
             case BISHOP -> getBishopMoves(board, myPosition);
             case KNIGHT -> getKnightMoves(board, myPosition);
             case ROOK -> getRookMoves(board, myPosition);
-            case PAWN -> getKingMoves(board, myPosition);
+            case PAWN -> getPawnMoves(board, myPosition);
         };
+
+        return moves;
+    }
+
+    private HashSet<ChessMove> getPawnMoves(ChessBoard board, ChessPosition myPosition) {
+
+        int yDirection = 0;
+        int doubleStepRow = 0;
+        int promotionRow = 0;
+
+        PieceType[] promotionPieces = {PieceType.BISHOP,PieceType.ROOK,PieceType.KNIGHT,PieceType.QUEEN};
+
+        switch (this.color) {
+            case WHITE -> {
+                yDirection = 1;
+                doubleStepRow = 2;
+                promotionRow = 8;
+            }
+            case BLACK -> {
+                yDirection = -1;
+                doubleStepRow = 7;
+                promotionRow = 1;
+            }
+        }
+
+        int row = myPosition.getRow();
+        int col = myPosition.getColumn();
+        HashSet<ChessMove> moves = new HashSet<ChessMove>();
+        int[][] moveWidgets = {{yDirection, 0}};
+        int moveDistance = row == doubleStepRow ? 2 : 1;
+
+        for (int[] widget : moveWidgets) {
+            int row_move = widget[0];
+            int col_move = widget[1];
+            for (int dist = 1; dist <= moveDistance; dist++) {
+                int new_row = row + row_move * dist;
+                int new_col = col + col_move * dist;
+                var target_pos = new ChessPosition(new_row, new_col);
+                if (!board.positionValid(target_pos)) {
+                    continue;
+                }
+                var target_piece = board.getPiece(target_pos);
+                if (target_piece == null) {
+                    if (new_row != promotionRow) {
+                        moves.add(new ChessMove(myPosition, target_pos, null));
+                    } else {
+                        for (var promotionPiece : promotionPieces) {
+                            moves.add(new ChessMove(myPosition, target_pos, promotionPiece));
+                        }
+                    }
+                } else {
+                    break;
+                }
+            }
+
+        }
+
+        int[][] moveWidgets2 = {{ yDirection,1},{yDirection,-1}};
+
+        for (int[] widget : moveWidgets2) {
+            int row_move = widget[0];
+            int col_move = widget[1];
+            for (int dist = 1; dist <= 1; dist++) {
+                int new_row = row + row_move * dist;
+                int new_col = col + col_move * dist;
+                var target_pos = new ChessPosition(new_row, new_col);
+                if (!board.positionValid(target_pos)) {
+                    continue;
+                }
+                var target_piece = board.getPiece(target_pos);
+                if (target_piece != null && target_piece.color!=this.color) {
+                    if (new_row != promotionRow) {
+                        moves.add(new ChessMove(myPosition, target_pos, null));
+                    } else {
+                        for (var promotionPiece : promotionPieces) {
+                            moves.add(new ChessMove(myPosition, target_pos, promotionPiece));
+                        }
+                    }
+                } else {
+                    break;
+                }
+            }
+
+        }
 
         return moves;
     }
