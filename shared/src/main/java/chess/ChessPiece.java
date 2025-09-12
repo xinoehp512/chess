@@ -70,23 +70,23 @@ public class ChessPiece {
         int row = myPosition.getRow();
         int col = myPosition.getColumn();
         for (int[] widget : moveWidgets) {
-            int row_move = widget[0];
-            int col_move = widget[1];
+            int rowMove = widget[0];
+            int colMove = widget[1];
             for (int dist = 1; dist <= moveDistance; dist++) {
-                int new_row = row + row_move * dist;
-                int new_col = col + col_move * dist;
-                var target_pos = new ChessPosition(new_row, new_col);
-                if (!board.positionValid(target_pos)) {
+                int newRow = row + rowMove * dist;
+                int newCol = col + colMove * dist;
+                var targetPos = new ChessPosition(newRow, newCol);
+                if (!board.positionValid(targetPos)) {
                     continue;
                 }
-                var target_piece = board.getPiece(target_pos);
-                if (target_piece == null) {
+                var targetPiece = board.getPiece(targetPos);
+                if (targetPiece == null) {
                     if (allowMoves) {
-                        positions.add(target_pos);
+                        positions.add(targetPos);
                     }
                 } else {
-                    if (target_piece.color != this.color && allowCaptures) {
-                        positions.add(target_pos);
+                    if (targetPiece.color != this.color && allowCaptures) {
+                        positions.add(targetPos);
                     }
                     break;
                 }
@@ -126,13 +126,13 @@ public class ChessPiece {
         positions.addAll(getMoveWidgetPositions(board, myPosition, moveWidgets2, moveDistance, false, true));
 
         PieceType[] promotionPieces = {PieceType.BISHOP, PieceType.ROOK, PieceType.KNIGHT, PieceType.QUEEN};
-        for (var target_pos : positions) {
+        for (var targetPos : positions) {
             if (row==promotionRow){
                 for (var piece : promotionPieces) {
-                    moves.add(new ChessMove(myPosition, target_pos, piece));
+                    moves.add(new ChessMove(myPosition, targetPos, piece));
                 }
             } else {
-                moves.add(new ChessMove(myPosition, target_pos, null));
+                moves.add(new ChessMove(myPosition, targetPos, null));
             }
         }
 
@@ -152,8 +152,8 @@ public class ChessPiece {
         };
         var positions = getMoveWidgetPositions(board, myPosition, moveWidgets, 1, true, true);
 
-        for (var target_pos : positions) {
-            moves.add(new ChessMove(myPosition, target_pos, null));
+        for (var targetPos : positions) {
+            moves.add(new ChessMove(myPosition, targetPos, null));
         }
 
         return moves;
@@ -170,8 +170,8 @@ public class ChessPiece {
         int[][] moveWidgets = {{0, 1}, {0, -1}, {1, 0}, {-1, 0}};
         var positions = getMoveWidgetPositions(board, myPosition, moveWidgets, 7, true, true);
 
-        for (var target_pos : positions) {
-            moves.add(new ChessMove(myPosition, target_pos, null));
+        for (var targetPos : positions) {
+            moves.add(new ChessMove(myPosition, targetPos, null));
         }
         return moves;
     }
@@ -181,8 +181,8 @@ public class ChessPiece {
         int[][] moveWidgets = {{1, 1}, {1, -1}, {-1, 1}, {-1, -1}};
         var positions = getMoveWidgetPositions(board, myPosition, moveWidgets, 7, true, true);
 
-        for (var target_pos : positions) {
-            moves.add(new ChessMove(myPosition, target_pos, null));
+        for (var targetPos : positions) {
+            moves.add(new ChessMove(myPosition, targetPos, null));
         }
         return moves;
     }
@@ -192,8 +192,8 @@ public class ChessPiece {
         int[][] moveWidgets = {{1, 1}, {1, -1}, {-1, 1}, {-1, -1}, {0, 1}, {0, -1}, {1, 0}, {-1, 0}};
         var positions = getMoveWidgetPositions(board, myPosition, moveWidgets, 1, true, true);
 
-        for (var target_pos : positions) {
-            moves.add(new ChessMove(myPosition, target_pos, null));
+        for (var targetPos : positions) {
+            moves.add(new ChessMove(myPosition, targetPos, null));
         }
         return moves;
     }

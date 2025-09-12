@@ -11,7 +11,7 @@ import java.util.Objects;
  */
 public class ChessBoard {
     private ChessPiece[][] board = new ChessPiece[8][8];
-    private static final String[] start_template = {
+    private static final String[] START_TEMPLATE = {
             "RNBQKBNR",
             "PPPPPPPP",
             "        ",
@@ -53,16 +53,16 @@ public class ChessBoard {
      */
     public void resetBoard() {
         for (int row = 0; row < 8; row++) {
-            String pieceRow = ChessBoard.start_template[row];
+            String pieceRow = ChessBoard.START_TEMPLATE[row];
             for (int col = 0; col < 8; col++) {
-                char piece_char = pieceRow.charAt(col);
+                char pieceChar = pieceRow.charAt(col);
                 ChessPiece piece;
 
-                if (piece_char == ' ') {
+                if (pieceChar == ' ') {
                     piece = null;
                 } else {
-                    chess.ChessGame.TeamColor color = Character.isUpperCase(piece_char) ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
-                    ChessPiece.PieceType type = switch (Character.toLowerCase(piece_char)) {
+                    chess.ChessGame.TeamColor color = Character.isUpperCase(pieceChar) ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
+                    ChessPiece.PieceType type = switch (Character.toLowerCase(pieceChar)) {
                         case 'p' -> ChessPiece.PieceType.PAWN;
                         case 'b' -> ChessPiece.PieceType.BISHOP;
                         case 'n' -> ChessPiece.PieceType.KNIGHT;
@@ -101,7 +101,7 @@ public class ChessBoard {
                     builder.append(" ");
                     continue;
                 }
-                char piece_char = switch (piece.type) {
+                char pieceChar = switch (piece.type) {
                     case ChessPiece.PieceType.PAWN -> 'p';
                     case ChessPiece.PieceType.BISHOP -> 'b';
                     case ChessPiece.PieceType.KNIGHT -> 'n';
@@ -110,17 +110,13 @@ public class ChessBoard {
                     case ChessPiece.PieceType.KING -> 'k';
                 };
                 if (piece.color == ChessGame.TeamColor.WHITE) {
-                    piece_char = Character.toUpperCase(piece_char);
+                    pieceChar = Character.toUpperCase(pieceChar);
                 }
-                builder.append(piece_char);
+                builder.append(pieceChar);
             }
             builder.append("\n");
         }
         return builder.toString();
-
-//        return "ChessBoard{" +
-//                "board=" + Arrays.deepToString(board) +
-//                '}';
     }
 
     public ChessPiece[][] getBoard() {
