@@ -65,7 +65,9 @@ public class ChessPiece {
         };
     }
 
-    private ArrayList<ChessPosition> getMoveWidgetPositions(ChessBoard board, ChessPosition myPosition, int[][] moveWidgets, int moveDistance, boolean allowMoves, boolean allowCaptures) {
+    private ArrayList<ChessPosition> getMoveWidgetPositions(ChessBoard board, ChessPosition myPosition,
+                                                            int[][] moveWidgets, int moveDistance,
+                                                            boolean allowMoves, boolean allowCaptures) {
         ArrayList<ChessPosition> positions = new ArrayList<>();
         int row = myPosition.getRow();
         int col = myPosition.getColumn();
