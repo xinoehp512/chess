@@ -20,8 +20,8 @@ public class ChessBoard {
             "pppppppp",
             "rnbqkbnr",
     };
-    private ChessPosition passant_square;
-    private Map<ChessGame.TeamColor, Boolean> can_castle = new HashMap<>(Map.of(
+    private ChessPosition enPassantSquare;
+    private Map<ChessGame.TeamColor, Boolean> canCastle = new HashMap<>(Map.of(
             ChessGame.TeamColor.WHITE, true,
             ChessGame.TeamColor.BLACK, true
     ));
@@ -30,8 +30,8 @@ public class ChessBoard {
     }
 
     public ChessBoard(ChessBoard board) {
-        passant_square = board.passant_square;
-        can_castle = board.can_castle;
+        enPassantSquare = board.enPassantSquare;
+        canCastle = board.canCastle;
         for (int i = 0; i < 8; i++) {
             this.board[i] = Arrays.copyOf(board.board[i], 8);
         }
@@ -85,9 +85,9 @@ public class ChessBoard {
      */
     public void resetBoard() {
 
-        can_castle.put(ChessGame.TeamColor.WHITE, true);
-        can_castle.put(ChessGame.TeamColor.BLACK, true);
-        passant_square = null;
+        canCastle.put(ChessGame.TeamColor.WHITE, true);
+        canCastle.put(ChessGame.TeamColor.BLACK, true);
+        enPassantSquare = null;
         for (int row = 0; row < 8; row++) {
             String pieceRow = ChessBoard.START_TEMPLATE[row];
             for (int col = 0; col < 8; col++) {
@@ -121,14 +121,14 @@ public class ChessBoard {
         }
         ChessBoard that = (ChessBoard) o;
         var a = Objects.deepEquals(board, that.board);
-        var b = Objects.equals(passant_square, that.passant_square);
-        var c = Objects.equals(can_castle, that.can_castle);
-        return Objects.deepEquals(board, that.board) && Objects.equals(passant_square, that.passant_square) && Objects.equals(can_castle, that.can_castle);
+        var b = Objects.equals(enPassantSquare, that.enPassantSquare);
+        var c = Objects.equals(canCastle, that.canCastle);
+        return Objects.deepEquals(board, that.board);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(Arrays.deepHashCode(board), passant_square, can_castle);
+        return Objects.hash(Arrays.deepHashCode(board), enPassantSquare, canCastle);
     }
 
     @Override
@@ -253,5 +253,13 @@ public class ChessBoard {
                 position -> legalMoves.addAll(validMoves(position))
         );
         return legalMoves;
+    }
+
+    public boolean teamCanCastle(ChessGame.TeamColor color) {
+        return canCastle.get(color);
+    }
+
+    public void removeCastling(ChessGame.TeamColor pieceColor) {
+        canCastle.put(pieceColor, false);
     }
 }

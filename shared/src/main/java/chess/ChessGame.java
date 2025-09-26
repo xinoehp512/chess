@@ -67,23 +67,52 @@ public class ChessGame {
     public void makeMove(ChessMove move) throws InvalidMoveException {
         var startPosition = move.getStartPosition();
         var targetPiece = board.getPiece(startPosition);
-        if (targetPiece==null) {
-            throw new InvalidMoveException("No piece at "+startPosition);
+        if (targetPiece == null) {
+            throw new InvalidMoveException("No piece at " + startPosition);
         }
-        var pieceColor=targetPiece.getTeamColor();
-        if (pieceColor !=currentTurn) {
-            throw new InvalidMoveException(targetPiece.getTeamColor()+" cannot move on " + currentTurn +"'s turn.");
+        var pieceColor = targetPiece.getTeamColor();
+        if (pieceColor != currentTurn) {
+            throw new InvalidMoveException(targetPiece.getTeamColor() + " cannot move on " + currentTurn + "'s turn.");
         }
-        var legalMoves=validMoves(move.getStartPosition());
-        if (legalMoves!=null && !legalMoves.contains(move)) {
+        var legalMoves = validMoves(move.getStartPosition());
+        if (legalMoves != null && !legalMoves.contains(move)) {
             throw new InvalidMoveException(move + " is invalid.");
         }
         board.makeMove(move);
-        if (move.getPromotionPiece()!=null) {
-            var promotedPiece=new ChessPiece(pieceColor,move.getPromotionPiece());
-            board.addPiece(move.getEndPosition(),promotedPiece);
+        if (move.getPromotionPiece() != null) {
+            var promotedPiece = new ChessPiece(pieceColor, move.getPromotionPiece());
+            board.addPiece(move.getEndPosition(), promotedPiece);
+        }
+        if (targetPiece.getPieceType()== ChessPiece.PieceType.KING) {
+            var kingRow=startPosition.getRow();
+            var startX=startPosition.getColumn();
+            var endX=move.getEndPosition().getColumn();
+            var displacement = startX-endX;
+            if (Math.abs(displacement)==2) {
+                var rookCol = displacement>0 ? 1 : 8;
+                var newRookCol = displacement>0 ? 4 : 6;
+                var rookPosition = new ChessPosition(kingRow,rookCol);
+                var newRookPosition = new ChessPosition(kingRow,newRookCol);
+                var rookMove=new ChessMove(rookPosition,newRookPosition,null);
+                board.makeMove(rookMove);
+            }
+        }
+        if ((targetPiece.getPieceType() == ChessPiece.PieceType.ROOK &&
+                ChessGame.positionIsStartingRookSquare(startPosition, pieceColor)) ||
+                targetPiece.getPieceType() == ChessPiece.PieceType.KING
+        ) {
+            board.removeCastling(pieceColor);
         }
         currentTurn = otherTeam(currentTurn);
+    }
+
+    private static boolean positionIsStartingRookSquare(ChessPosition startPosition, TeamColor pieceColor) {
+        var xPos = startPosition.getColumn();
+        var yPos = startPosition.getRow();
+        return switch (pieceColor) {
+            case WHITE -> yPos == 1 && (xPos == 1 || xPos == 8);
+            case BLACK -> yPos == 8 && (xPos == 1 || xPos == 8);
+        };
     }
 
     /**
