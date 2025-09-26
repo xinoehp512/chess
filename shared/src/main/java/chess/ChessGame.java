@@ -67,7 +67,11 @@ public class ChessGame {
     public void makeMove(ChessMove move) throws InvalidMoveException {
         var startPosition = move.getStartPosition();
         var targetPiece = board.getPiece(startPosition);
-        if (targetPiece!=null && targetPiece.getTeamColor()!=currentTurn) {
+        if (targetPiece==null) {
+            throw new InvalidMoveException("No piece at "+startPosition);
+        }
+        var pieceColor=targetPiece.getTeamColor();
+        if (pieceColor !=currentTurn) {
             throw new InvalidMoveException(targetPiece.getTeamColor()+" cannot move on " + currentTurn +"'s turn.");
         }
         var legalMoves=validMoves(move.getStartPosition());
@@ -75,6 +79,10 @@ public class ChessGame {
             throw new InvalidMoveException(move + " is invalid.");
         }
         board.makeMove(move);
+        if (move.getPromotionPiece()!=null) {
+            var promotedPiece=new ChessPiece(pieceColor,move.getPromotionPiece());
+            board.addPiece(move.getEndPosition(),promotedPiece);
+        }
         currentTurn = otherTeam(currentTurn);
     }
 
