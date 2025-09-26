@@ -55,7 +55,7 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        throw new RuntimeException("Not implemented");
+        return board.validMoves(startPosition);
     }
 
     /**
@@ -76,15 +76,7 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        TeamColor opponent = otherTeam(teamColor);
-        HashSet<ChessPosition> attackedByOpponent = board.getAttackedBy(opponent);
-        for (var position : attackedByOpponent) {
-            var attackedPiece = board.getPiece(position);
-            if (attackedPiece != null && attackedPiece.is(teamColor, ChessPiece.PieceType.KING)) {
-                return true;
-            }
-        }
-        return false;
+        return board.isInCheck(teamColor);
     }
 
     /**
@@ -94,7 +86,8 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        HashSet<ChessMove> legalMoves=board.validMoves(teamColor);
+        return board.isInCheck(teamColor) && legalMoves.isEmpty();
     }
 
     /**

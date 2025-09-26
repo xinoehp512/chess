@@ -29,6 +29,14 @@ public class ChessBoard {
     public ChessBoard() {
     }
 
+    public ChessBoard(ChessBoard board) {
+        passant_square = board.passant_square;
+        can_castle = board.can_castle;
+        for (int i = 0; i < 8; i++) {
+            this.board[i] = Arrays.copyOf(board.board[i], 8);
+        }
+    }
+
     /**
      * Adds a chess piece to the chessboard
      *
@@ -186,5 +194,61 @@ public class ChessBoard {
             }
         }
         return positions;
+    }
+
+    /**
+     * Determines if the given team is in check
+     *
+     * @param teamColor which team to check for check
+     * @return True if the specified team is in check
+     */
+    public boolean isInCheck(ChessGame.TeamColor teamColor) {
+        ChessGame.TeamColor opponent = ChessGame.otherTeam(teamColor);
+        HashSet<ChessPosition> attackedByOpponent = getAttackedBy(opponent);
+        for (var position : attackedByOpponent) {
+            var attackedPiece = getPiece(position);
+            if (attackedPiece != null && attackedPiece.is(teamColor, ChessPiece.PieceType.KING)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Gets a valid moves for a piece at the given location
+     *
+     * @param startPosition the piece to get valid moves for
+     * @return Set of valid moves for requested piece, or null if no piece at
+     * startPosition
+     */
+    public Collection<ChessMove> validMoves(ChessPosition startPosition) {
+        HashSet<ChessMove> moves = new HashSet<>();
+        var piece = getPiece(startPosition);
+        if (piece == null) {
+            return null;
+        }
+        var allMoves = piece.pieceMoves(this, startPosition);
+        var pieceColor = piece.getTeamColor();
+        for (var move : allMoves) {
+            var testBoard = new ChessBoard(this);
+            try {
+                testBoard.makeMove(move);
+            } catch (InvalidMoveException e) {
+                continue;
+            }
+            if (testBoard.isInCheck(pieceColor)) {
+                continue;
+            }
+            moves.add(move);
+        }
+        return moves;
+    }
+
+    public HashSet<ChessMove> validMoves(ChessGame.TeamColor teamColor) {
+        var legalMoves = new HashSet<ChessMove>();
+        getPiecePositionsOf(teamColor).forEach(
+                position -> legalMoves.addAll(validMoves(position))
+        );
+        return legalMoves;
     }
 }
