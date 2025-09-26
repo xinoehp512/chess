@@ -1,6 +1,7 @@
 package chess;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
 
 /**
@@ -42,6 +43,10 @@ public class ChessGame {
         BLACK
     }
 
+    public static TeamColor otherTeam(TeamColor team) {
+        return team == TeamColor.WHITE ? TeamColor.BLACK : TeamColor.WHITE;
+    }
+
     /**
      * Gets a valid moves for a piece at the given location
      *
@@ -71,7 +76,15 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        TeamColor opponent = otherTeam(teamColor);
+        HashSet<ChessPosition> attackedByOpponent = board.getAttackedBy(opponent);
+        for (var position : attackedByOpponent) {
+            var attackedPiece = board.getPiece(position);
+            if (attackedPiece != null && attackedPiece.is(teamColor, ChessPiece.PieceType.KING)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

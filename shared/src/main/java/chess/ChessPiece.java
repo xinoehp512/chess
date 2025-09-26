@@ -12,12 +12,27 @@ import java.util.Objects;
  * signature of the existing methods.
  */
 public class ChessPiece {
-    ChessGame.TeamColor color;
-    PieceType type;
+    private final ChessGame.TeamColor color;
+    private final PieceType type;
 
     public ChessPiece(ChessGame.TeamColor pieceColor, PieceType type) {
         color = pieceColor;
         this.type = type;
+    }
+
+    public boolean is(ChessGame.TeamColor teamColor, PieceType pieceType) {
+        return teamColor==color && pieceType==type;
+    }
+
+    public Collection<ChessMove> pieceAttacks(ChessBoard board, ChessPosition myPosition) {
+        return switch (type) {
+            case KING -> getKingMoves(board, myPosition);
+            case QUEEN -> getQueenMoves(board, myPosition);
+            case BISHOP -> getBishopMoves(board, myPosition);
+            case KNIGHT -> getKnightMoves(board, myPosition);
+            case ROOK -> getRookMoves(board, myPosition);
+            case PAWN -> getPawnMoves(board, myPosition,false);
+        };
     }
 
     /**
@@ -61,7 +76,7 @@ public class ChessPiece {
             case BISHOP -> getBishopMoves(board, myPosition);
             case KNIGHT -> getKnightMoves(board, myPosition);
             case ROOK -> getRookMoves(board, myPosition);
-            case PAWN -> getPawnMoves(board, myPosition);
+            case PAWN -> getPawnMoves(board, myPosition,true);
         };
     }
 
@@ -98,7 +113,7 @@ public class ChessPiece {
         return positions;
     }
 
-    private HashSet<ChessMove> getPawnMoves(ChessBoard board, ChessPosition myPosition) {
+    private HashSet<ChessMove> getPawnMoves(ChessBoard board, ChessPosition myPosition, boolean getMoves) {
 
         int yDirection = 0;
         int doubleStepRow = 0;
@@ -125,8 +140,12 @@ public class ChessPiece {
         int moveDistance = row == doubleStepRow ? 2 : 1;
 
         var positions = getMoveWidgetPositions(board, myPosition, moveWidgets, moveDistance, true, false);
-        positions.addAll(getMoveWidgetPositions(board, myPosition, moveWidgets2, moveDistance, false, true));
-
+        var attacks = getMoveWidgetPositions(board, myPosition, moveWidgets2, moveDistance, false, true);
+        if (getMoves) {
+            positions.addAll(attacks);
+        } else {
+            positions=attacks;
+        }
         PieceType[] promotionPieces = {PieceType.BISHOP, PieceType.ROOK, PieceType.KNIGHT, PieceType.QUEEN};
         for (var targetPos : positions) {
             if (row==promotionRow){

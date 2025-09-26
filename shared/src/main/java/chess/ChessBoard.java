@@ -1,9 +1,6 @@
 package chess;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * A chessboard that can hold and rearrange chess pieces.
@@ -24,9 +21,9 @@ public class ChessBoard {
             "rnbqkbnr",
     };
     private ChessPosition passant_square;
-    private Map<ChessGame.TeamColor,Boolean> can_castle = new HashMap<>( Map.of(
-            ChessGame.TeamColor.WHITE,false,
-            ChessGame.TeamColor.BLACK,false
+    private Map<ChessGame.TeamColor, Boolean> can_castle = new HashMap<>(Map.of(
+            ChessGame.TeamColor.WHITE, false,
+            ChessGame.TeamColor.BLACK, false
     ));
 
     public ChessBoard() {
@@ -51,16 +48,16 @@ public class ChessBoard {
     public void makeMove(ChessMove move) throws InvalidMoveException {
         var startPosition = move.getStartPosition();
         var endPosition = move.getEndPosition();
-        var startX = startPosition.getColumn()-1;
-        var startY = startPosition.getRow()-1;
-        var endX = endPosition.getColumn()-1;
-        var endY = endPosition.getRow()-1;
+        var startX = startPosition.getColumn() - 1;
+        var startY = startPosition.getRow() - 1;
+        var endX = endPosition.getColumn() - 1;
+        var endY = endPosition.getRow() - 1;
         var piece = board[startY][startX];
-        if(piece==null){
+        if (piece == null) {
             throw new InvalidMoveException();
         }
-        board[startY][startX]=null;
-        board[endY][endX]=piece;
+        board[startY][startX] = null;
+        board[endY][endX] = piece;
     }
 
     /**
@@ -80,9 +77,9 @@ public class ChessBoard {
      */
     public void resetBoard() {
 
-        can_castle.put(ChessGame.TeamColor.WHITE,true);
-        can_castle.put(ChessGame.TeamColor.BLACK,true);
-        passant_square =null;
+        can_castle.put(ChessGame.TeamColor.WHITE, true);
+        can_castle.put(ChessGame.TeamColor.BLACK, true);
+        passant_square = null;
         for (int row = 0; row < 8; row++) {
             String pieceRow = ChessBoard.START_TEMPLATE[row];
             for (int col = 0; col < 8; col++) {
@@ -129,10 +126,10 @@ public class ChessBoard {
         for (ChessPiece[] row : board) {
             for (ChessPiece piece : row) {
                 if (piece == null) {
-                    builder.append(" ");
+                    builder.append(".");
                     continue;
                 }
-                char pieceChar = switch (piece.type) {
+                char pieceChar = switch (piece.getPieceType()) {
                     case ChessPiece.PieceType.PAWN -> 'p';
                     case ChessPiece.PieceType.BISHOP -> 'b';
                     case ChessPiece.PieceType.KNIGHT -> 'n';
@@ -140,7 +137,7 @@ public class ChessBoard {
                     case ChessPiece.PieceType.QUEEN -> 'q';
                     case ChessPiece.PieceType.KING -> 'k';
                 };
-                if (piece.color == ChessGame.TeamColor.WHITE) {
+                if (piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
                     pieceChar = Character.toUpperCase(pieceChar);
                 }
                 builder.append(pieceChar);
@@ -158,5 +155,36 @@ public class ChessBoard {
         int row = targetPos.getRow();
         int col = targetPos.getColumn();
         return 0 < row && row <= 8 && 0 < col && col <= 8;
+    }
+
+    public HashSet<ChessPosition> getAttackedBy(ChessGame.TeamColor teamColor) {
+        HashSet<ChessPosition> piecePositions = getPiecePositionsOf(teamColor);
+        HashSet<ChessPosition> attackedPositions = new HashSet<>();
+        for (var position : piecePositions) {
+            var piece = getPiece(position);
+            var attacks = piece.pieceAttacks(this, position);
+            for (var attack : attacks) {
+                var endPos = attack.getEndPosition();
+                attackedPositions.add(endPos);
+            }
+        }
+        return attackedPositions;
+    }
+
+    private HashSet<ChessPosition> getPiecePositionsOf(ChessGame.TeamColor teamColor) {
+        HashSet<ChessPosition> positions = new HashSet<>();
+        for (int i = 1; i <= 8; i++) {
+            for (int j = 1; j <= 8; j++) {
+                var position = new ChessPosition(i, j);
+                var piece = getPiece(position);
+                if (piece == null) {
+                    continue;
+                }
+                if (piece.getTeamColor() == teamColor) {
+                    positions.add(position);
+                }
+            }
+        }
+        return positions;
     }
 }
