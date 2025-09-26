@@ -24,15 +24,15 @@ public class ChessPiece {
     public ChessPiece(ChessPiece chessPiece) {
         color = chessPiece.color;
         type = chessPiece.type;
-        hasMoved = chessPiece.hasMoved;;
+        hasMoved = chessPiece.hasMoved;
     }
 
     public boolean is(ChessGame.TeamColor teamColor, PieceType pieceType) {
         return teamColor==color && pieceType==type;
     }
 
-    public boolean getHasMoved() {
-        return hasMoved;
+    public boolean hasNotMoved() {
+        return !hasMoved;
     }
 
     public void setMoved() {
@@ -114,6 +114,9 @@ public class ChessPiece {
                 var targetPiece = board.getPiece(targetPos);
                 if (targetPiece == null) {
                     if (allowMoves) {
+                        positions.add(targetPos);
+                    }
+                    if (Objects.equals(targetPos,board.getEnPassantSquare()) && this.color!=board.getEnPassantColor() && type==PieceType.PAWN && allowCaptures){
                         positions.add(targetPos);
                     }
                 } else {

@@ -21,12 +21,14 @@ public class ChessBoard {
             "rnbqkbnr",
     };
     private ChessPosition enPassantSquare;
+    private ChessGame.TeamColor enPassantColor;
 
     public ChessBoard() {
     }
 
     public ChessBoard(ChessBoard board) {
         enPassantSquare = board.enPassantSquare;
+        enPassantColor = board.enPassantColor;
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
                 var piece = board.board[i][j];
@@ -51,20 +53,18 @@ public class ChessBoard {
      * @param move the move to execute
      * @throws InvalidMoveException if move is invalid
      */
-    public void makeMove(ChessMove move) throws InvalidMoveException {
+    public ChessPiece makeMove(ChessMove move) throws InvalidMoveException {
         var startPosition = move.getStartPosition();
         var endPosition = move.getEndPosition();
-        var startX = startPosition.getColumn() - 1;
-        var startY = startPosition.getRow() - 1;
-        var endX = endPosition.getColumn() - 1;
-        var endY = endPosition.getRow() - 1;
-        var piece = board[startY][startX];
+        var piece = getPiece(startPosition);
         if (piece == null) {
             throw new InvalidMoveException("No piece at location " + startPosition);
         }
-        board[startY][startX] = null;
-        board[endY][endX] = piece;
+        removePiece(startPosition);
+        ChessPiece capturedPiece = removePiece(endPosition);
+        addPiece(endPosition,piece);
         piece.setMoved();
+        return capturedPiece;
     }
 
     /**
@@ -76,6 +76,12 @@ public class ChessBoard {
      */
     public ChessPiece getPiece(ChessPosition position) {
         return board[position.getRow() - 1][position.getColumn() - 1];
+    }
+
+    public ChessPiece removePiece(ChessPosition position) {
+        var capturedPiece=getPiece(position);
+        board[position.getRow() - 1][position.getColumn() - 1] = null;
+        return capturedPiece;
     }
 
     /**
@@ -254,10 +260,26 @@ public class ChessBoard {
         HashSet<ChessPosition> rookPositions = new HashSet<>();
         for (var position : piecePositions) {
             var piece = getPiece(position);
-            if (piece.getPieceType() == ChessPiece.PieceType.ROOK && !piece.getHasMoved()) {
+            if (piece.getPieceType() == ChessPiece.PieceType.ROOK && piece.hasNotMoved()) {
                 rookPositions.add(position);
             }
         }
         return rookPositions;
+    }
+
+    public void resetEnPassantSquare() {
+        enPassantSquare=null;
+    }
+
+    public void setEnPassantSquare(ChessPosition skippedSquare, ChessGame.TeamColor color) {
+        enPassantSquare=skippedSquare;
+        enPassantColor=color;
+    }
+    public ChessGame.TeamColor getEnPassantColor() {
+        return  enPassantColor;
+    }
+
+    public ChessPosition getEnPassantSquare() {
+        return enPassantSquare;
     }
 }
