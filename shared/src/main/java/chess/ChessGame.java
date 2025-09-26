@@ -65,8 +65,12 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-//        currentTurn = currentTurn == TeamColor.WHITE ? TeamColor.BLACK : TeamColor.WHITE;
+        var legalMoves=validMoves(move.getStartPosition());
+        if (legalMoves!=null && !legalMoves.contains(move)) {
+            throw new InvalidMoveException(move + " is invalid.");
+        }
         board.makeMove(move);
+        currentTurn = otherTeam(currentTurn);
     }
 
     /**
@@ -97,7 +101,7 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        return  !board.isInCheck(teamColor) && board.validMoves(teamColor).isEmpty();
+        return !board.isInCheck(teamColor) && board.validMoves(teamColor).isEmpty();
     }
 
     /**

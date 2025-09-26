@@ -62,7 +62,7 @@ public class ChessBoard {
         var endY = endPosition.getRow() - 1;
         var piece = board[startY][startX];
         if (piece == null) {
-            throw new InvalidMoveException();
+            throw new InvalidMoveException("No piece at location " + startPosition);
         }
         board[startY][startX] = null;
         board[endY][endX] = piece;
@@ -120,9 +120,9 @@ public class ChessBoard {
             return false;
         }
         ChessBoard that = (ChessBoard) o;
-        var a=Objects.deepEquals(board, that.board);
-        var b=Objects.equals(passant_square, that.passant_square);
-        var c=Objects.equals(can_castle, that.can_castle);
+        var a = Objects.deepEquals(board, that.board);
+        var b = Objects.equals(passant_square, that.passant_square);
+        var c = Objects.equals(can_castle, that.can_castle);
         return Objects.deepEquals(board, that.board) && Objects.equals(passant_square, that.passant_square) && Objects.equals(can_castle, that.can_castle);
     }
 
