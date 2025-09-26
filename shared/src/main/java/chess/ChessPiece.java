@@ -14,14 +14,29 @@ import java.util.Objects;
 public class ChessPiece {
     private final ChessGame.TeamColor color;
     private final PieceType type;
+    private boolean hasMoved = false;
 
     public ChessPiece(ChessGame.TeamColor pieceColor, PieceType type) {
         color = pieceColor;
         this.type = type;
     }
 
+    public ChessPiece(ChessPiece chessPiece) {
+        color = chessPiece.color;
+        type = chessPiece.type;
+        hasMoved = chessPiece.hasMoved;;
+    }
+
     public boolean is(ChessGame.TeamColor teamColor, PieceType pieceType) {
         return teamColor==color && pieceType==type;
+    }
+
+    public boolean getHasMoved() {
+        return hasMoved;
+    }
+
+    public void setMoved() {
+        hasMoved=true;
     }
 
     public Collection<ChessMove> pieceAttacks(ChessBoard board, ChessPosition myPosition) {

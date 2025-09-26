@@ -1,8 +1,6 @@
 package chess;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * For a class that can manage a chess game, making moves on a board
@@ -57,30 +55,31 @@ public class ChessGame {
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         var moves = board.validMoves(startPosition);
         var piece = board.getPiece(startPosition);
-        if (piece != null && piece.getPieceType() == ChessPiece.PieceType.KING) {
+        if (piece != null && piece.getPieceType() == ChessPiece.PieceType.KING && !piece.getHasMoved()) {
             var color = piece.getTeamColor();
             var attackedByOpponent = board.getAttackedBy(otherTeam(color));
-            if( board.teamCanCastle(color)) {
-                var kingX=startPosition.getColumn();
-                var kingY=startPosition.getRow();
-                int[] castleXCandidates = {kingX+2,kingX-2};
-                for (int xCandidate : castleXCandidates) {
-                    var direction = Integer.signum(xCandidate-kingX);
-                    var canCastle=true;
-                    for (int x = kingX; x < xCandidate; x+=direction) {
-                        var position = new ChessPosition(kingY,x);
-                        if ((board.getPiece(position)!=null && !(x==kingX)) || attackedByOpponent.contains(position)) {
-                            canCastle=false;
-                            break;
-                        }
+            var kingX = startPosition.getColumn();
+            var kingY = startPosition.getRow();
+            HashSet<ChessPosition> castleCandidates = board.getCastleCandidates(color);
+            for (var rookPosition : castleCandidates) {
+                var rookX = rookPosition.getColumn();
+                var direction = Integer.signum(rookX - kingX);
+                var canCastle = true;
+                for (int x = kingX; Math.abs(x - rookX) > 0; x += direction) {
+                    var position = new ChessPosition(kingY, x);
+                    if ((board.getPiece(position) != null && !(x == kingX)) || attackedByOpponent.contains(position)) {
+                        canCastle = false;
+                        break;
                     }
-                    if (canCastle) {
-                        var move = new ChessMove(startPosition,new ChessPosition(kingY, xCandidate), null);
-                        moves.add(move);
-                    }
+                }
+                if (canCastle) {
+                    var newPosition = new ChessPosition(kingY, kingX + direction * 2);
+                    var move = new ChessMove(startPosition, newPosition, null);
+                    moves.add(move);
                 }
             }
         }
+
         return moves;
     }
 
@@ -123,23 +122,10 @@ public class ChessGame {
                 board.makeMove(rookMove);
             }
         }
-        if ((targetPiece.getPieceType() == ChessPiece.PieceType.ROOK &&
-                ChessGame.positionIsStartingRookSquare(startPosition, pieceColor)) ||
-                targetPiece.getPieceType() == ChessPiece.PieceType.KING
-        ) {
-            board.removeCastling(pieceColor);
-        }
+
         currentTurn = otherTeam(currentTurn);
     }
 
-    private static boolean positionIsStartingRookSquare(ChessPosition startPosition, TeamColor pieceColor) {
-        var xPos = startPosition.getColumn();
-        var yPos = startPosition.getRow();
-        return switch (pieceColor) {
-            case WHITE -> yPos == 1 && (xPos == 1 || xPos == 8);
-            case BLACK -> yPos == 8 && (xPos == 1 || xPos == 8);
-        };
-    }
 
     /**
      * Determines if the given team is in check

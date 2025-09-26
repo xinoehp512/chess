@@ -21,19 +21,17 @@ public class ChessBoard {
             "rnbqkbnr",
     };
     private ChessPosition enPassantSquare;
-    private Map<ChessGame.TeamColor, Boolean> canCastle = new HashMap<>(Map.of(
-            ChessGame.TeamColor.WHITE, true,
-            ChessGame.TeamColor.BLACK, true
-    ));
 
     public ChessBoard() {
     }
 
     public ChessBoard(ChessBoard board) {
         enPassantSquare = board.enPassantSquare;
-        canCastle = board.canCastle;
         for (int i = 0; i < 8; i++) {
-            this.board[i] = Arrays.copyOf(board.board[i], 8);
+            for (int j = 0; j < 8; j++) {
+                var piece = board.board[i][j];
+                this.board[i][j] = piece == null ? null : new ChessPiece(piece);
+            }
         }
     }
 
@@ -66,6 +64,7 @@ public class ChessBoard {
         }
         board[startY][startX] = null;
         board[endY][endX] = piece;
+        piece.setMoved();
     }
 
     /**
@@ -84,9 +83,6 @@ public class ChessBoard {
      * (How the game of chess normally starts)
      */
     public void resetBoard() {
-
-        canCastle.put(ChessGame.TeamColor.WHITE, true);
-        canCastle.put(ChessGame.TeamColor.BLACK, true);
         enPassantSquare = null;
         for (int row = 0; row < 8; row++) {
             String pieceRow = ChessBoard.START_TEMPLATE[row];
@@ -120,15 +116,12 @@ public class ChessBoard {
             return false;
         }
         ChessBoard that = (ChessBoard) o;
-        var a = Objects.deepEquals(board, that.board);
-        var b = Objects.equals(enPassantSquare, that.enPassantSquare);
-        var c = Objects.equals(canCastle, that.canCastle);
         return Objects.deepEquals(board, that.board);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(Arrays.deepHashCode(board), enPassantSquare, canCastle);
+        return Objects.hash(Arrays.deepHashCode(board));
     }
 
     @Override
@@ -255,11 +248,16 @@ public class ChessBoard {
         return legalMoves;
     }
 
-    public boolean teamCanCastle(ChessGame.TeamColor color) {
-        return canCastle.get(color);
-    }
 
-    public void removeCastling(ChessGame.TeamColor pieceColor) {
-        canCastle.put(pieceColor, false);
+    public HashSet<ChessPosition> getCastleCandidates(ChessGame.TeamColor color) {
+        HashSet<ChessPosition> piecePositions = getPiecePositionsOf(color);
+        HashSet<ChessPosition> rookPositions = new HashSet<>();
+        for (var position : piecePositions) {
+            var piece = getPiece(position);
+            if (piece.getPieceType() == ChessPiece.PieceType.ROOK && !piece.getHasMoved()) {
+                rookPositions.add(position);
+            }
+        }
+        return rookPositions;
     }
 }
