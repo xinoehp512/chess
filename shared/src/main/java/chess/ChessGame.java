@@ -86,8 +86,7 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
-        HashSet<ChessMove> legalMoves=board.validMoves(teamColor);
-        return board.isInCheck(teamColor) && legalMoves.isEmpty();
+        return board.isInCheck(teamColor) && board.validMoves(teamColor).isEmpty();
     }
 
     /**
@@ -98,7 +97,7 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        return  !board.isInCheck(teamColor) && board.validMoves(teamColor).isEmpty();
     }
 
     /**
