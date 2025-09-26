@@ -22,8 +22,8 @@ public class ChessBoard {
     };
     private ChessPosition passant_square;
     private Map<ChessGame.TeamColor, Boolean> can_castle = new HashMap<>(Map.of(
-            ChessGame.TeamColor.WHITE, false,
-            ChessGame.TeamColor.BLACK, false
+            ChessGame.TeamColor.WHITE, true,
+            ChessGame.TeamColor.BLACK, true
     ));
 
     public ChessBoard() {
@@ -120,6 +120,9 @@ public class ChessBoard {
             return false;
         }
         ChessBoard that = (ChessBoard) o;
+        var a=Objects.deepEquals(board, that.board);
+        var b=Objects.equals(passant_square, that.passant_square);
+        var c=Objects.equals(can_castle, that.can_castle);
         return Objects.deepEquals(board, that.board) && Objects.equals(passant_square, that.passant_square) && Objects.equals(can_castle, that.can_castle);
     }
 
