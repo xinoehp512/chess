@@ -55,7 +55,33 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        return board.validMoves(startPosition);
+        var moves = board.validMoves(startPosition);
+        var piece = board.getPiece(startPosition);
+        if (piece != null && piece.getPieceType() == ChessPiece.PieceType.KING) {
+            var color = piece.getTeamColor();
+            var attackedByOpponent = board.getAttackedBy(otherTeam(color));
+            if( board.teamCanCastle(color)) {
+                var kingX=startPosition.getColumn();
+                var kingY=startPosition.getRow();
+                int[] castleXCandidates = {kingX+2,kingX-2};
+                for (int xCandidate : castleXCandidates) {
+                    var direction = Integer.signum(xCandidate-kingX);
+                    var canCastle=true;
+                    for (int x = kingX; x < xCandidate; x+=direction) {
+                        var position = new ChessPosition(kingY,x);
+                        if ((board.getPiece(position)!=null && !(x==kingX)) || attackedByOpponent.contains(position)) {
+                            canCastle=false;
+                            break;
+                        }
+                    }
+                    if (canCastle) {
+                        var move = new ChessMove(startPosition,new ChessPosition(kingY, xCandidate), null);
+                        moves.add(move);
+                    }
+                }
+            }
+        }
+        return moves;
     }
 
     /**
@@ -83,17 +109,17 @@ public class ChessGame {
             var promotedPiece = new ChessPiece(pieceColor, move.getPromotionPiece());
             board.addPiece(move.getEndPosition(), promotedPiece);
         }
-        if (targetPiece.getPieceType()== ChessPiece.PieceType.KING) {
-            var kingRow=startPosition.getRow();
-            var startX=startPosition.getColumn();
-            var endX=move.getEndPosition().getColumn();
-            var displacement = startX-endX;
-            if (Math.abs(displacement)==2) {
-                var rookCol = displacement>0 ? 1 : 8;
-                var newRookCol = displacement>0 ? 4 : 6;
-                var rookPosition = new ChessPosition(kingRow,rookCol);
-                var newRookPosition = new ChessPosition(kingRow,newRookCol);
-                var rookMove=new ChessMove(rookPosition,newRookPosition,null);
+        if (targetPiece.getPieceType() == ChessPiece.PieceType.KING) {
+            var kingRow = startPosition.getRow();
+            var startX = startPosition.getColumn();
+            var endX = move.getEndPosition().getColumn();
+            var displacement = startX - endX;
+            if (Math.abs(displacement) == 2) {
+                var rookCol = displacement > 0 ? 1 : 8;
+                var newRookCol = displacement > 0 ? 4 : 6;
+                var rookPosition = new ChessPosition(kingRow, rookCol);
+                var newRookPosition = new ChessPosition(kingRow, newRookCol);
+                var rookMove = new ChessMove(rookPosition, newRookPosition, null);
                 board.makeMove(rookMove);
             }
         }

@@ -213,12 +213,6 @@ public class ChessPiece {
         int[][] moveWidgets = {{1, 1}, {1, -1}, {-1, 1}, {-1, -1}, {0, 1}, {0, -1}, {1, 0}, {-1, 0}};
         var positions = getMoveWidgetPositions(board, myPosition, moveWidgets, 1, true, true);
 
-        if (board.teamCanCastle(color)) {
-            var myX=myPosition.getColumn();
-            var myY=myPosition.getRow();
-            positions.add(new ChessPosition(myY,myX+2));
-            positions.add(new ChessPosition(myY,myX-2));
-        }
         for (var targetPos : positions) {
             moves.add(new ChessMove(myPosition, targetPos, null));
         }
