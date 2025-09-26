@@ -1,6 +1,8 @@
 package chess;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -10,7 +12,7 @@ import java.util.Objects;
  * signature of the existing methods.
  */
 public class ChessBoard {
-    private ChessPiece[][] board = new ChessPiece[8][8];
+    private final ChessPiece[][] board = new ChessPiece[8][8];
     private static final String[] START_TEMPLATE = {
             "RNBQKBNR",
             "PPPPPPPP",
@@ -21,9 +23,13 @@ public class ChessBoard {
             "pppppppp",
             "rnbqkbnr",
     };
+    private ChessPosition passant_square;
+    private Map<ChessGame.TeamColor,Boolean> can_castle = new HashMap<>( Map.of(
+            ChessGame.TeamColor.WHITE,false,
+            ChessGame.TeamColor.BLACK,false
+    ));
 
     public ChessBoard() {
-
     }
 
     /**
@@ -34,6 +40,27 @@ public class ChessBoard {
      */
     public void addPiece(ChessPosition position, ChessPiece piece) {
         board[position.getRow() - 1][position.getColumn() - 1] = piece;
+    }
+
+    /**
+     * Executes the specified move.
+     *
+     * @param move the move to execute
+     * @throws InvalidMoveException if move is invalid
+     */
+    public void makeMove(ChessMove move) throws InvalidMoveException {
+        var startPosition = move.getStartPosition();
+        var endPosition = move.getEndPosition();
+        var startX = startPosition.getColumn()-1;
+        var startY = startPosition.getRow()-1;
+        var endX = endPosition.getColumn()-1;
+        var endY = endPosition.getRow()-1;
+        var piece = board[startY][startX];
+        if(piece==null){
+            throw new InvalidMoveException();
+        }
+        board[startY][startX]=null;
+        board[endY][endX]=piece;
     }
 
     /**
@@ -52,6 +79,10 @@ public class ChessBoard {
      * (How the game of chess normally starts)
      */
     public void resetBoard() {
+
+        can_castle.put(ChessGame.TeamColor.WHITE,true);
+        can_castle.put(ChessGame.TeamColor.BLACK,true);
+        passant_square =null;
         for (int row = 0; row < 8; row++) {
             String pieceRow = ChessBoard.START_TEMPLATE[row];
             for (int col = 0; col < 8; col++) {
@@ -84,12 +115,12 @@ public class ChessBoard {
             return false;
         }
         ChessBoard that = (ChessBoard) o;
-        return Objects.deepEquals(board, that.board);
+        return Objects.deepEquals(board, that.board) && Objects.equals(passant_square, that.passant_square) && Objects.equals(can_castle, that.can_castle);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.deepHashCode(board);
+        return Objects.hash(Arrays.deepHashCode(board), passant_square, can_castle);
     }
 
     @Override
