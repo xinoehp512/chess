@@ -1,6 +1,11 @@
 package server;
 
+import com.google.gson.Gson;
 import io.javalin.*;
+import io.javalin.http.Context;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Map;
 
 public class Server {
 
@@ -9,9 +14,17 @@ public class Server {
     public Server() {
         server = Javalin.create(config -> config.staticFiles.add("web"));
         server.delete("db",ctx -> ctx.result("{}"));
-        server.post("user",ctx->ctx.result("{user:name}"));
+        server.post("user", this::register);
 
         // Register your endpoints and exception handlers here.
+
+    }
+
+    private void register(@NotNull Context ctx) {
+        var serializer = new Gson();
+        var req = serializer.fromJson(ctx.body(), Map.class);
+        var res = Map.of("username",req.get("username"),"authToken","xyz");
+        ctx.result(serializer.toJson(res));
 
     }
 
