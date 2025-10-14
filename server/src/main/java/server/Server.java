@@ -1,6 +1,9 @@
 package server;
 
 import com.google.gson.Gson;
+import dataaccess.MemoryAuthDAO;
+import dataaccess.MemoryGameDAO;
+import dataaccess.MemoryUserDAO;
 import io.javalin.*;
 import io.javalin.http.Context;
 import models.AuthData;
@@ -22,8 +25,11 @@ public class Server {
     private final Gson serializer = new Gson();
 
     public Server() {
-        gameService = new GameService();
-        userService = new UserService();
+        var authDAO = new MemoryAuthDAO();
+        var userDAO = new MemoryUserDAO();
+        var gameDAO = new MemoryGameDAO();
+        gameService = new GameService(gameDAO);
+        userService = new UserService(userDAO,authDAO);
 
         server = Javalin.create(config -> config.staticFiles.add("web"));
         server.delete("db", this::clear);

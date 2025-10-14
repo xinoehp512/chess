@@ -13,8 +13,13 @@ import java.util.UUID;
 
 public class UserService {
 
-    private final UserDAO userDAO = new MemoryUserDAO();
-    private final AuthDAO authDAO = new MemoryAuthDAO();
+    private final UserDAO userDAO;
+    private final AuthDAO authDAO;
+
+    public UserService(UserDAO userDAO, AuthDAO authDAO) {
+        this.userDAO = userDAO;
+        this.authDAO = authDAO;
+    }
 
     public AuthData register(RegisterRequest registerRequest) throws ResponseException {
         registerRequest.assertGood();
