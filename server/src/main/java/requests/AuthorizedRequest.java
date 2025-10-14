@@ -1,4 +1,4 @@
 package requests;
 
-public interface AuthorizedRequest extends Request{
+public interface AuthorizedRequest extends Request {
 }
