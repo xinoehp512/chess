@@ -1,8 +1,6 @@
 package services;
 
-import dataaccess.AuthDAO;
-import dataaccess.DataAccessException;
-import dataaccess.UserDAO;
+import dataaccess.*;
 import models.AuthData;
 import models.UserData;
 import requests.LoginRequest;
@@ -15,8 +13,8 @@ import java.util.UUID;
 
 public class UserService {
 
-    private final UserDAO userDAO = new UserDAO();
-    private final AuthDAO authDAO = new AuthDAO();
+    private final UserDAO userDAO = new MemoryUserDAO();
+    private final AuthDAO authDAO = new MemoryAuthDAO();
 
     public AuthData register(RegisterRequest registerRequest) throws ResponseException {
         registerRequest.assertGood();
