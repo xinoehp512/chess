@@ -1,4 +1,4 @@
 package requests;
 
-public class RegisterRequest implements Request {
+public record RegisterRequest(String username, String password, String email) implements Request {
 }
