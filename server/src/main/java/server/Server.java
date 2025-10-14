@@ -46,11 +46,8 @@ public class Server {
 
     private void register(@NotNull Context ctx) throws ResponseException {
 
-        var req = serializer.fromJson(ctx.body(), Map.class);
-        String username = (String) req.get("username");
-        String password = (String) req.get("password");
-        String email = (String) req.get("email");
-        AuthData authData = userService.register(new RegisterRequest(username, password, email));
+        var req = serializer.fromJson(ctx.body(), RegisterRequest.class);
+        AuthData authData = userService.register(req);
 
         var res = Map.of("username", authData.username(), "authToken", authData.authToken());
         ctx.result(serializer.toJson(res));
