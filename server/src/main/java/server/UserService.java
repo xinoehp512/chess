@@ -1,6 +1,7 @@
 package server;
 
 import dataaccess.AuthDAO;
+import dataaccess.DataAccessException;
 import dataaccess.UserDAO;
 import models.AuthData;
 import models.UserData;
@@ -15,13 +16,14 @@ public class UserService {
     private final AuthDAO authDAO = new AuthDAO();
 
     public AuthData register(RegisterRequest registerRequest) {
-        if (userDAO.getUser(registerRequest.username()) != null) {
+        UserData userData = this.makeUser(registerRequest);
+        try {
+            userDAO.insertUser(userData);
+        } catch (DataAccessException e) {
             throw new AlreadyTakenException("Username already taken!");
         }
-        UserData userData = this.makeUser(registerRequest);
-        userDAO.createUser(userData);
         AuthData authData = this.makeAuth(userData);
-        authDAO.createAuth(authData);
+        authDAO.insertAuth(authData);
         return authData;
     }
 

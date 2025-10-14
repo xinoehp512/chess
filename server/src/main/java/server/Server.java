@@ -5,6 +5,7 @@ import io.javalin.*;
 import io.javalin.http.Context;
 import models.AuthData;
 import org.jetbrains.annotations.NotNull;
+import requests.AlreadyTakenException;
 import requests.RegisterRequest;
 
 import java.util.Map;
@@ -14,6 +15,7 @@ public class Server {
     private final Javalin server;
     private final GameService gameService;
     private final UserService userService;
+    private final Gson serializer = new Gson();
 
     public Server() {
         gameService = new GameService();
@@ -27,12 +29,12 @@ public class Server {
     }
 
     private void register(@NotNull Context ctx) {
-        var serializer = new Gson();
+
         var req = serializer.fromJson(ctx.body(), Map.class);
         String username = (String) req.get("username");
         String password = (String) req.get("password");
         String email = (String) req.get("email");
-        AuthData authData = userService.register(new RegisterRequest(username,password,email));
+        AuthData authData = userService.register(new RegisterRequest(username, password, email));
 
 
         var res = Map.of("username", authData.username(), "authToken", authData.authToken());
