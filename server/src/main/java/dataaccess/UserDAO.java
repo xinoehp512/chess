@@ -23,4 +23,8 @@ public class UserDAO {
         }
         table.add(userData);
     }
+
+    public void clear() {
+        table.clear();
+    }
 }

@@ -20,4 +20,14 @@ public class AuthDAO {
     public void insertAuth(AuthData authData) {
         table.add(authData);
     }
+
+    public void deleteAuth(String authToken) throws DataAccessException {
+        if (!table.removeIf(authData -> Objects.equals(authToken,authData.authToken()))) {
+            throw new DataAccessException("Auth Token is bad!");
+        }
+    }
+
+    public void clear() {
+        table.clear();
+    }
 }

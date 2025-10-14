@@ -1,6 +1,6 @@
 package requests;
 
-public class CreateGameRequest implements AuthorizedRequest {
+public record CreateGameRequest() implements AuthorizedRequest {
     @Override
     public void assertGood() throws ResponseException {
 

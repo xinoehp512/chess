@@ -6,6 +6,7 @@ import dataaccess.UserDAO;
 import models.AuthData;
 import models.UserData;
 import requests.LoginRequest;
+import requests.LogoutRequest;
 import requests.RegisterRequest;
 import requests.ResponseException;
 
@@ -37,6 +38,14 @@ public class UserService {
         return this.makeAuth(userData);
     }
 
+    public void logout(LogoutRequest logoutRequest) throws ResponseException {
+        try {
+            authDAO.deleteAuth(logoutRequest.authToken());
+        } catch (DataAccessException e) {
+            throw new ResponseException("Error: unauthorized", 401);
+        }
+    }
+
     private AuthData makeAuth(UserData userData) {
         AuthData authData = new AuthData(generateAuthToken(), userData.username());
         authDAO.insertAuth(authData);
@@ -52,4 +61,8 @@ public class UserService {
     }
 
 
+    public void clear() {
+        userDAO.clear();
+        authDAO.clear();
+    }
 }

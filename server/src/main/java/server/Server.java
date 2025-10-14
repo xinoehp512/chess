@@ -6,6 +6,7 @@ import io.javalin.http.Context;
 import models.AuthData;
 import org.jetbrains.annotations.NotNull;
 import requests.LoginRequest;
+import requests.LogoutRequest;
 import requests.RegisterRequest;
 import requests.ResponseException;
 import services.GameService;
@@ -25,7 +26,7 @@ public class Server {
         userService = new UserService();
 
         server = Javalin.create(config -> config.staticFiles.add("web"));
-        server.delete("db", ctx -> ctx.result("{}"));
+        server.delete("db", this::clear);
         server.post("user", this::register);
         server.post("session", this::login);
         server.delete("session", this::logout);
@@ -36,7 +37,13 @@ public class Server {
 
 
     }
-    
+
+    private void clear(@NotNull Context ctx) {
+        gameService.clear();
+        userService.clear();
+        ctx.result("{}");
+    }
+
     private void register(@NotNull Context ctx) throws ResponseException {
 
         var req = serializer.fromJson(ctx.body(), Map.class);
@@ -59,8 +66,10 @@ public class Server {
         ctx.result(serializer.toJson(res));
     }
 
-    private void logout(@NotNull Context ctx) {
-
+    private void logout(@NotNull Context ctx) throws ResponseException {
+        String authToken = serializer.fromJson(ctx.header("authorization"), String.class);
+        userService.logout(new LogoutRequest(authToken));
+        ctx.result("{}");
     }
 
     private void listGames(@NotNull Context ctx) {

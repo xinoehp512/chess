@@ -1,6 +1,7 @@
 package requests;
 
-public class LogoutRequest implements AuthorizedRequest {
+public record LogoutRequest(String authToken) implements AuthorizedRequest {
+
     @Override
     public void assertGood() throws ResponseException {
 
