@@ -5,9 +5,10 @@ import io.javalin.*;
 import io.javalin.http.Context;
 import models.AuthData;
 import org.jetbrains.annotations.NotNull;
-import requests.AlreadyTakenException;
 import requests.RegisterRequest;
 import requests.ResponseException;
+import services.GameService;
+import services.UserService;
 
 import java.util.Map;
 
@@ -35,7 +36,7 @@ public class Server {
         ctx.result(e.toJson());
     }
 
-    private void register(@NotNull Context ctx) throws AlreadyTakenException {
+    private void register(@NotNull Context ctx) throws ResponseException {
 
         var req = serializer.fromJson(ctx.body(), Map.class);
         String username = (String) req.get("username");
