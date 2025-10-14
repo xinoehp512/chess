@@ -1,7 +1,8 @@
 package requests;
 
-public class ColorTakenException extends RuntimeException {
-    public ColorTakenException(String message) {
-        super(message);
+public class ColorTakenException extends ResponseException {
+
+    public ColorTakenException(String message, int statusCode) {
+        super(message, statusCode);
     }
 }

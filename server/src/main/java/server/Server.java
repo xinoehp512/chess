@@ -7,6 +7,7 @@ import models.AuthData;
 import org.jetbrains.annotations.NotNull;
 import requests.AlreadyTakenException;
 import requests.RegisterRequest;
+import requests.ResponseException;
 
 import java.util.Map;
 
@@ -24,11 +25,17 @@ public class Server {
         server = Javalin.create(config -> config.staticFiles.add("web"));
         server.delete("db", ctx -> ctx.result("{}"));
         server.post("user", this::register);
+        server.exception(ResponseException.class,this::exceptionHandler);
 
 
     }
 
-    private void register(@NotNull Context ctx) {
+    private void exceptionHandler(@NotNull ResponseException e, @NotNull Context ctx) {
+        ctx.status(e.getStatusCode());
+        ctx.result(e.toJson());
+    }
+
+    private void register(@NotNull Context ctx) throws AlreadyTakenException {
 
         var req = serializer.fromJson(ctx.body(), Map.class);
         String username = (String) req.get("username");

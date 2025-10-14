@@ -15,12 +15,12 @@ public class UserService {
     private final UserDAO userDAO = new UserDAO();
     private final AuthDAO authDAO = new AuthDAO();
 
-    public AuthData register(RegisterRequest registerRequest) {
+    public AuthData register(RegisterRequest registerRequest) throws AlreadyTakenException {
         UserData userData = this.makeUser(registerRequest);
         try {
             userDAO.insertUser(userData);
         } catch (DataAccessException e) {
-            throw new AlreadyTakenException("Username already taken!");
+            throw new AlreadyTakenException("Error: username already taken",403);
         }
         AuthData authData = this.makeAuth(userData);
         authDAO.insertAuth(authData);
