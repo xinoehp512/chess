@@ -48,6 +48,24 @@ class UserServiceTest {
     }
 
     @Test
+    void loginWrongPassword() throws ResponseException {
+        String username = "xinoehp512";
+        String password = "$ecureP4ssw0rd";
+        String email = "xinoehp512@gmail.com";
+        userService.register(new RegisterRequest(username, password, email));
+        assertThrows(ResponseException.class, () -> userService.login(new LoginRequest(username,"hackerpassword")));
+    }
+
+    @Test
+    void loginWrongUsername() throws ResponseException {
+        String username = "xinoehp512";
+        String password = "$ecureP4ssw0rd";
+        String email = "xinoehp512@gmail.com";
+        userService.register(new RegisterRequest(username, password, email));
+        assertThrows(ResponseException.class, () -> userService.login(new LoginRequest("xineohp512",password)));
+    }
+
+    @Test
     void logout() {
     }
 
