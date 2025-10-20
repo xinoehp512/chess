@@ -32,7 +32,10 @@ class UserServiceTest {
     }
 
     @Test
-    void registerDuplicateUser() throws ResponseException {
+    void registerDuplicateUsername() throws ResponseException {
+        String username = "Bob";
+        userService.register(new RegisterRequest(username, "password", "bob@gmail.com"));
+        assertThrows(ResponseException.class, () -> userService.register(new RegisterRequest(username, "12345", "bob@yahoo.com")));
     }
 
     @Test
