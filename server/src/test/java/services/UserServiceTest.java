@@ -1,12 +1,10 @@
 package services;
 
 import dataaccess.MemoryAuthDAO;
-import dataaccess.MemoryGameDAO;
 import dataaccess.MemoryUserDAO;
-import models.AuthData;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import requests.LoginRequest;
 import requests.RegisterRequest;
 import requests.ResponseException;
 
@@ -39,7 +37,14 @@ class UserServiceTest {
     }
 
     @Test
-    void login() {
+    void login() throws ResponseException {
+        String username = "xinoehp512";
+        String password = "$ecureP4ssw0rd";
+        String email = "xinoehp512@gmail.com";
+        userService.register(new RegisterRequest(username, password, email));
+        var auth = userService.login(new LoginRequest(username,password));
+        assertNotNull(auth.authToken());
+        assertEquals(username, auth.username());
     }
 
     @Test
