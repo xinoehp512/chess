@@ -42,7 +42,7 @@ class UserServiceTest {
         String password = "$ecureP4ssw0rd";
         String email = "xinoehp512@gmail.com";
         userService.register(new RegisterRequest(username, password, email));
-        var auth = userService.login(new LoginRequest(username,password));
+        var auth = userService.login(new LoginRequest(username, password));
         assertNotNull(auth.authToken());
         assertEquals(username, auth.username());
     }
@@ -53,7 +53,7 @@ class UserServiceTest {
         String password = "$ecureP4ssw0rd";
         String email = "xinoehp512@gmail.com";
         userService.register(new RegisterRequest(username, password, email));
-        assertThrows(ResponseException.class, () -> userService.login(new LoginRequest(username,"hackerpassword")));
+        assertThrows(ResponseException.class, () -> userService.login(new LoginRequest(username, "hackerpassword")));
     }
 
     @Test
@@ -62,7 +62,18 @@ class UserServiceTest {
         String password = "$ecureP4ssw0rd";
         String email = "xinoehp512@gmail.com";
         userService.register(new RegisterRequest(username, password, email));
-        assertThrows(ResponseException.class, () -> userService.login(new LoginRequest("xineohp512",password)));
+        assertThrows(ResponseException.class, () -> userService.login(new LoginRequest("xineohp512", password)));
+    }
+
+    @Test
+    void loginTwice() throws ResponseException {
+        String username = "xinoehp512";
+        String password = "$ecureP4ssw0rd";
+        String email = "xinoehp512@gmail.com";
+        userService.register(new RegisterRequest(username, password, email));
+        var auth = userService.login(new LoginRequest(username, password));
+        var auth2 = userService.login(new LoginRequest(username, password));
+        assertNotEquals(auth.authToken(), auth2.authToken());
     }
 
     @Test
