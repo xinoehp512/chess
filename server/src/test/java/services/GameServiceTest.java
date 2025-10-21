@@ -35,7 +35,8 @@ class GameServiceTest {
     @Test
     void createGame() throws ResponseException {
         String gameName = "Game 1";
-        var response = gameService.createGame(new CreateGameRequest(gameName), authData.authToken());
+        var response = gameService.createGame(new CreateGameRequest(gameName),
+                authData.authToken());
         assertNotNull(response);
         assertEquals(gameName, gameDAO.getGame(response.gameID()).gameName());
     }
@@ -47,7 +48,8 @@ class GameServiceTest {
     @Test
     void joinGameWhite() throws ResponseException {
         String gameName = "Game 1";
-        var response = gameService.createGame(new CreateGameRequest(gameName), authData.authToken());
+        var response = gameService.createGame(new CreateGameRequest(gameName),
+                authData.authToken());
         var gameID = response.gameID();
         gameService.joinGame(new JoinGameRequest("WHITE", gameID), authData.authToken());
         var game = gameDAO.getGame(gameID);
@@ -58,11 +60,23 @@ class GameServiceTest {
     @Test
     void joinGameBlack() throws ResponseException {
         String gameName = "Game 1";
-        var response = gameService.createGame(new CreateGameRequest(gameName), authData.authToken());
+        var response = gameService.createGame(new CreateGameRequest(gameName),
+                authData.authToken());
         var gameID = response.gameID();
         gameService.joinGame(new JoinGameRequest("BLACK", gameID), authData.authToken());
         var game = gameDAO.getGame(gameID);
         assertNull(game.whiteUsername());
         assertEquals(authData.username(), game.blackUsername());
+    }
+
+    @Test
+    void joinGameBadColor() throws ResponseException {
+        String gameName = "Game 1";
+        var response = gameService.createGame(new CreateGameRequest(gameName),
+                authData.authToken());
+        var gameID = response.gameID();
+        assertThrows(ResponseException.class, () -> gameService.joinGame(new JoinGameRequest(
+                "BLACK ", gameID), authData.authToken()));
+
     }
 }
