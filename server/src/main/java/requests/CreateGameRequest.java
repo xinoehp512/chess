@@ -1,6 +1,6 @@
 package requests;
 
-public record CreateGameRequest(String gameName) implements AuthorizedRequest {
+public record CreateGameRequest(String gameName) implements Request {
     @Override
     public void assertGood() throws ResponseException {
         if(gameName == null) {

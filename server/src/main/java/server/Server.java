@@ -10,6 +10,7 @@ import models.AuthData;
 import org.jetbrains.annotations.NotNull;
 import requests.*;
 import response.CreateGameResponse;
+import response.ListGamesResponse;
 import services.GameService;
 import services.UserService;
 
@@ -26,7 +27,7 @@ public class Server {
         var authDAO = new MemoryAuthDAO();
         var userDAO = new MemoryUserDAO();
         var gameDAO = new MemoryGameDAO();
-        gameService = new GameService(gameDAO);
+        gameService = new GameService(gameDAO,authDAO);
         userService = new UserService(userDAO,authDAO);
 
         server = Javalin.create(config -> config.staticFiles.add("web"));
@@ -74,17 +75,23 @@ public class Server {
     }
 
     private void listGames(@NotNull Context ctx) {
-
+        String authToken = serializer.fromJson(ctx.header("authorization"), String.class);
+        ListGamesResponse res = gameService.listGames(authToken);
+        ctx.result(serializer.toJson(res));
     }
 
     private void createGame(@NotNull Context ctx) {
-        var req = serializer.fromJson(ctx.body(), CreateGameRequest.class);
+        var req = serializer.fromJson(ctx.body(),CreateGameRequest.class);
         String authToken = serializer.fromJson(ctx.header("authorization"), String.class);
         CreateGameResponse res = gameService.createGame(req,authToken);
+        ctx.result(serializer.toJson(res));
     }
 
     private void joinGame(@NotNull Context ctx) {
-
+        var req = serializer.fromJson(ctx.body(),JoinGameRequest.class);
+        String authToken = serializer.fromJson(ctx.header("authorization"), String.class);
+        gameService.joinGame(req,authToken);
+        ctx.result("{}");
     }
 
     private void exceptionHandler(@NotNull ResponseException e, @NotNull Context ctx) {

@@ -1,6 +1,8 @@
 package services;
 
+import dataaccess.AuthDAO;
 import dataaccess.GameDAO;
+import dataaccess.MemoryAuthDAO;
 import dataaccess.MemoryGameDAO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,12 +12,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class GameServiceTest {
     GameService gameService;
-    GameDAO gameDao;
+    GameDAO gameDAO;
+    AuthDAO authDAO;
 
     @BeforeEach
     void initGameService() {
-        gameDao = new MemoryGameDAO();
-        gameService = new GameService(gameDao);
+        gameDAO = new MemoryGameDAO();
+        authDAO = new MemoryAuthDAO();
+        gameService = new GameService(gameDAO, authDAO);
     }
 
     @Test
@@ -28,6 +32,6 @@ class GameServiceTest {
         String gameName = "Game 1";
         var response = gameService.createGame(new CreateGameRequest(gameName), authToken);
         assertNotNull(response);
-        assertEquals(gameName, gameDao.getGame(response.gameID()).gameName());
+        assertEquals(gameName, gameDAO.getGame(response.gameID()).gameName());
     }
 }
