@@ -1,10 +1,12 @@
 package services;
 
+import dataaccess.AuthDAO;
 import dataaccess.MemoryAuthDAO;
 import dataaccess.MemoryUserDAO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import requests.LoginRequest;
+import requests.LogoutRequest;
 import requests.RegisterRequest;
 import requests.ResponseException;
 
@@ -13,10 +15,11 @@ import static org.junit.jupiter.api.Assertions.*;
 class UserServiceTest {
 
     UserService userService;
+    AuthDAO authDAO;
 
     @BeforeEach
     void initUserService() {
-        var authDAO = new MemoryAuthDAO();
+        authDAO = new MemoryAuthDAO();
         var userDAO = new MemoryUserDAO();
         userService = new UserService(userDAO, authDAO);
     }
@@ -73,16 +76,23 @@ class UserServiceTest {
         userService.register(new RegisterRequest(username, password, email));
         var auth = userService.login(new LoginRequest(username, password));
         var auth2 = userService.login(new LoginRequest(username, password));
+        assertTrue(authDAO.authIsValid(auth));
+        assertTrue(authDAO.authIsValid(auth2));
         assertNotEquals(auth.authToken(), auth2.authToken());
     }
 
     @Test
-    void logout() {
+    void logout() throws ResponseException {
+        String username = "xinoehp512";
+        String password = "$ecureP4ssw0rd";
+        String email = "xinoehp512@gmail.com";
+        userService.register(new RegisterRequest(username, password, email));
+        var auth = userService.login(new LoginRequest(username, password));
+        userService.logout(new LogoutRequest(auth.authToken()));
+        assertFalse(authDAO.authIsValid(auth));
     }
 
     @Test
     void clear() {
     }
-
-
 }

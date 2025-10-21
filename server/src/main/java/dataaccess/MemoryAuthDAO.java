@@ -1,33 +1,30 @@
 package dataaccess;
 
 import models.AuthData;
-import models.UserData;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class MemoryAuthDAO implements AuthDAO {
-    private final List<AuthData> table = new ArrayList<>();
+    private final Map<String,AuthData> table = new HashMap<>();
     public AuthData getAuth(String authToken) {
-        for (var data : table) {
-            if (Objects.equals(authToken,data.authToken())) {
-                return data;
-            }
-        }
-        return null;
+        return table.get(authToken);
     }
     public void insertAuth(AuthData authData) {
-        table.add(authData);
+        table.put(authData.authToken(), authData);
     }
 
     public void deleteAuth(String authToken) throws DataAccessException {
-        if (!table.removeIf(authData -> Objects.equals(authToken,authData.authToken()))) {
+        if (table.remove(authToken) == null) {
             throw new DataAccessException("Auth Token is bad!");
         }
     }
 
     public void clear() {
         table.clear();
+    }
+
+    @Override
+    public boolean authIsValid(AuthData authData) {
+        return Objects.equals(table.get(authData.authToken()), authData);
     }
 }
