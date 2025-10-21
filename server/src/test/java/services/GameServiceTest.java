@@ -79,4 +79,15 @@ class GameServiceTest {
                 "BLACK ", gameID), authData.authToken()));
 
     }
+
+    @Test
+    void joinGameColorTaken() throws ResponseException {
+        String gameName = "Game 1";
+        var response = gameService.createGame(new CreateGameRequest(gameName),
+                authData.authToken());
+        var gameID = response.gameID();
+        gameService.joinGame(new JoinGameRequest("WHITE", gameID), authData.authToken());
+        assertThrows(ResponseException.class, () -> gameService.joinGame(new JoinGameRequest(
+                "WHITE", gameID), authDataOtherUser.authToken()));
+    }
 }
