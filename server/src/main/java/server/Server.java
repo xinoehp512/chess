@@ -74,20 +74,20 @@ public class Server {
         ctx.result("{}");
     }
 
-    private void listGames(@NotNull Context ctx) {
+    private void listGames(@NotNull Context ctx) throws ResponseException {
         String authToken = serializer.fromJson(ctx.header("authorization"), String.class);
         ListGamesResponse res = gameService.listGames(authToken);
         ctx.result(serializer.toJson(res));
     }
 
-    private void createGame(@NotNull Context ctx) {
+    private void createGame(@NotNull Context ctx) throws ResponseException {
         var req = serializer.fromJson(ctx.body(),CreateGameRequest.class);
         String authToken = serializer.fromJson(ctx.header("authorization"), String.class);
         CreateGameResponse res = gameService.createGame(req,authToken);
         ctx.result(serializer.toJson(res));
     }
 
-    private void joinGame(@NotNull Context ctx) {
+    private void joinGame(@NotNull Context ctx) throws ResponseException {
         var req = serializer.fromJson(ctx.body(),JoinGameRequest.class);
         String authToken = serializer.fromJson(ctx.header("authorization"), String.class);
         gameService.joinGame(req,authToken);
