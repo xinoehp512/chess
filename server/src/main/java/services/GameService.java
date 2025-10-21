@@ -2,6 +2,8 @@ package services;
 
 
 import dataaccess.GameDAO;
+import requests.CreateGameRequest;
+import response.CreateGameResponse;
 
 public class GameService {
     private final GameDAO gameDAO;
@@ -11,5 +13,9 @@ public class GameService {
     }
 
     public void clear() {
+    }
+
+    public CreateGameResponse createGame(CreateGameRequest req, String authToken) {
+        return null;
     }
 }

@@ -8,10 +8,8 @@ import io.javalin.*;
 import io.javalin.http.Context;
 import models.AuthData;
 import org.jetbrains.annotations.NotNull;
-import requests.LoginRequest;
-import requests.LogoutRequest;
-import requests.RegisterRequest;
-import requests.ResponseException;
+import requests.*;
+import response.CreateGameResponse;
 import services.GameService;
 import services.UserService;
 
@@ -80,7 +78,9 @@ public class Server {
     }
 
     private void createGame(@NotNull Context ctx) {
-
+        var req = serializer.fromJson(ctx.body(), CreateGameRequest.class);
+        String authToken = serializer.fromJson(ctx.header("authorization"), String.class);
+        CreateGameResponse res = gameService.createGame(req,authToken);
     }
 
     private void joinGame(@NotNull Context ctx) {
