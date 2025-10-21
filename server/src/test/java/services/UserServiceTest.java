@@ -93,6 +93,17 @@ class UserServiceTest {
     }
 
     @Test
+    void logoutTwice() throws ResponseException {
+        String username = "xinoehp512";
+        String password = "$ecureP4ssw0rd";
+        String email = "xinoehp512@gmail.com";
+        userService.register(new RegisterRequest(username, password, email));
+        var auth = userService.login(new LoginRequest(username, password));
+        userService.logout(new LogoutRequest(auth.authToken()));
+        assertThrows(ResponseException.class, () -> userService.logout(new LogoutRequest(auth.authToken())));
+    }
+
+    @Test
     void clear() {
     }
 }
