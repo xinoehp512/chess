@@ -104,4 +104,10 @@ class GameServiceTest {
         assertThrows(ResponseException.class, () -> gameService.joinGame(new JoinGameRequest(
                 "WHITE", gameID), authDataOtherUser.authToken()));
     }
+
+    @Test
+    void joinGameNoGame() {
+        assertThrows(ResponseException.class, () -> gameService.joinGame(new JoinGameRequest(
+                "WHITE", 0), authDataOtherUser.authToken()));
+    }
 }
