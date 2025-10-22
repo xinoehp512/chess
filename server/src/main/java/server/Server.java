@@ -12,9 +12,9 @@ import org.jetbrains.annotations.NotNull;
 import requests.*;
 import response.CreateGameResponse;
 import response.ListGamesResponse;
-import services.AdminService;
-import services.GameService;
-import services.UserService;
+import service.AdminService;
+import service.GameService;
+import service.UserService;
 
 import java.util.Map;
 
