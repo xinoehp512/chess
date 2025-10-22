@@ -8,8 +8,7 @@ import requests.LoginRequest;
 import requests.RegisterRequest;
 import requests.ResponseException;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 class AdminServiceTest {
 
@@ -49,5 +48,10 @@ class AdminServiceTest {
             assertEquals(0, gameDAO.getAll().size());
         }
 
+    }
+
+    @Test
+    void clearEmpty() {
+        assertDoesNotThrow(() -> adminService.clear());
     }
 }
