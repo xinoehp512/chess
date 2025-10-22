@@ -53,10 +53,10 @@ class GameServiceTest {
         gameService.createGame(new CreateGameRequest("Game 2"), authData.authToken());
         gameService.createGame(new CreateGameRequest("Game 3"), authData.authToken());
 
-        List<GameData> actual_games = gameDAO.getAll();
+        List<GameData> actualGames = gameDAO.getAll();
         List<GameData> games = gameService.listGames(authData.authToken()).games();
 
-        assertEquals(actual_games, games);
+        assertEquals(actualGames, games);
     }
 
     @Test
