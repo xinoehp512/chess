@@ -28,7 +28,7 @@ public class ChessPiece {
     }
 
     public boolean is(ChessGame.TeamColor teamColor, PieceType pieceType) {
-        return teamColor==color && pieceType==type;
+        return teamColor == color && pieceType == type;
     }
 
     public boolean hasNotMoved() {
@@ -36,7 +36,7 @@ public class ChessPiece {
     }
 
     public void setMoved() {
-        hasMoved=true;
+        hasMoved = true;
     }
 
     public Collection<ChessMove> pieceAttacks(ChessBoard board, ChessPosition myPosition) {
@@ -46,7 +46,7 @@ public class ChessPiece {
             case BISHOP -> getBishopMoves(board, myPosition);
             case KNIGHT -> getKnightMoves(board, myPosition);
             case ROOK -> getRookMoves(board, myPosition);
-            case PAWN -> getPawnMoves(board, myPosition,false);
+            case PAWN -> getPawnMoves(board, myPosition, false);
         };
     }
 
@@ -54,12 +54,7 @@ public class ChessPiece {
      * The various different chess piece options
      */
     public enum PieceType {
-        KING,
-        QUEEN,
-        BISHOP,
-        KNIGHT,
-        ROOK,
-        PAWN
+        KING, QUEEN, BISHOP, KNIGHT, ROOK, PAWN
     }
 
     /**
@@ -91,13 +86,14 @@ public class ChessPiece {
             case BISHOP -> getBishopMoves(board, myPosition);
             case KNIGHT -> getKnightMoves(board, myPosition);
             case ROOK -> getRookMoves(board, myPosition);
-            case PAWN -> getPawnMoves(board, myPosition,true);
+            case PAWN -> getPawnMoves(board, myPosition, true);
         };
     }
 
-    private ArrayList<ChessPosition> getMoveWidgetPositions(ChessBoard board, ChessPosition myPosition,
-                                                            int[][] moveWidgets, int moveDistance,
-                                                            boolean allowMoves, boolean allowCaptures) {
+    private ArrayList<ChessPosition> getMoveWidgetPositions(ChessBoard board,
+                                                            ChessPosition myPosition,
+                                                            int[][] moveWidgets, int moveDistance
+            , boolean allowMoves, boolean allowCaptures) {
         ArrayList<ChessPosition> positions = new ArrayList<>();
         int row = myPosition.getRow();
         int col = myPosition.getColumn();
@@ -116,7 +112,9 @@ public class ChessPiece {
                     if (allowMoves) {
                         positions.add(targetPos);
                     }
-                    if (Objects.equals(targetPos,board.getEnPassantSquare()) && this.color!=board.getEnPassantColor() && type==PieceType.PAWN && allowCaptures){
+                    if (Objects.equals(targetPos, board.getEnPassantSquare()) &&
+                        this.color != board.getEnPassantColor() && type == PieceType.PAWN &&
+                        allowCaptures) {
                         positions.add(targetPos);
                     }
                 } else {
@@ -131,7 +129,8 @@ public class ChessPiece {
         return positions;
     }
 
-    private HashSet<ChessMove> getPawnMoves(ChessBoard board, ChessPosition myPosition, boolean getMoves) {
+    private HashSet<ChessMove> getPawnMoves(ChessBoard board, ChessPosition myPosition,
+                                            boolean getMoves) {
 
         int yDirection = 0;
         int doubleStepRow = 0;
@@ -157,16 +156,19 @@ public class ChessPiece {
         int[][] moveWidgets2 = {{yDirection, 1}, {yDirection, -1}};
         int moveDistance = row == doubleStepRow ? 2 : 1;
 
-        var positions = getMoveWidgetPositions(board, myPosition, moveWidgets, moveDistance, true, false);
-        var attacks = getMoveWidgetPositions(board, myPosition, moveWidgets2, moveDistance, false, true);
+        var positions = getMoveWidgetPositions(board, myPosition, moveWidgets, moveDistance, true
+                , false);
+        var attacks = getMoveWidgetPositions(board, myPosition, moveWidgets2, moveDistance, false
+                , true);
         if (getMoves) {
             positions.addAll(attacks);
         } else {
-            positions=attacks;
+            positions = attacks;
         }
-        PieceType[] promotionPieces = {PieceType.BISHOP, PieceType.ROOK, PieceType.KNIGHT, PieceType.QUEEN};
+        PieceType[] promotionPieces = {PieceType.BISHOP, PieceType.ROOK, PieceType.KNIGHT,
+                PieceType.QUEEN};
         for (var targetPos : positions) {
-            if (row==promotionRow){
+            if (row == promotionRow) {
                 for (var piece : promotionPieces) {
                     moves.add(new ChessMove(myPosition, targetPos, piece));
                 }
@@ -176,19 +178,13 @@ public class ChessPiece {
         }
 
 
-
-
         return moves;
     }
 
     private HashSet<ChessMove> getKnightMoves(ChessBoard board, ChessPosition myPosition) {
         HashSet<ChessMove> moves = new HashSet<>();
-        int[][] moveWidgets = {
-                {1, 2}, {2, 1},
-                {1, -2}, {2, -1},
-                {-1, 2}, {-2, 1},
-                {-1, -2}, {-2, -1},
-        };
+        int[][] moveWidgets = {{1, 2}, {2, 1}, {1, -2}, {2, -1}, {-1, 2}, {-2, 1}, {-1, -2}, {-2,
+                -1},};
         var positions = getMoveWidgetPositions(board, myPosition, moveWidgets, 1, true, true);
 
         for (var targetPos : positions) {
@@ -228,7 +224,8 @@ public class ChessPiece {
 
     private HashSet<ChessMove> getKingMoves(ChessBoard board, ChessPosition myPosition) {
         HashSet<ChessMove> moves = new HashSet<>();
-        int[][] moveWidgets = {{1, 1}, {1, -1}, {-1, 1}, {-1, -1}, {0, 1}, {0, -1}, {1, 0}, {-1, 0}};
+        int[][] moveWidgets = {{1, 1}, {1, -1}, {-1, 1}, {-1, -1}, {0, 1}, {0, -1}, {1, 0}, {-1,
+                0}};
         var positions = getMoveWidgetPositions(board, myPosition, moveWidgets, 1, true, true);
 
         for (var targetPos : positions) {
@@ -255,9 +252,6 @@ public class ChessPiece {
 
     @Override
     public String toString() {
-        return "ChessPiece{" +
-                "color=" + color +
-                ", type=" + type +
-                '}';
+        return "ChessPiece{" + "color=" + color + ", type=" + type + '}';
     }
 }

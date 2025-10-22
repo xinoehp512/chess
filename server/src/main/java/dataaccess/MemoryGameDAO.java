@@ -20,12 +20,12 @@ public class MemoryGameDAO implements GameDAO {
         table.put(gameData.gameID(), gameData);
     }
 
-    @Override
-    public void deleteGame(int gameID) throws DataAccessException {
-        if (table.remove(gameID) == null) {
-            throw new DataAccessException("Auth Token is bad!");
-        }
-    }
+//    @Override
+//    public void deleteGame(int gameID) throws DataAccessException {
+//        if (table.remove(gameID) == null) {
+//            throw new DataAccessException("Auth Token is bad!");
+//        }
+//    }
 
     @Override
     public void clear() {
