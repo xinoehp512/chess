@@ -103,22 +103,22 @@ class UserServiceTest {
         assertThrows(ResponseException.class, () -> userService.logout(new LogoutRequest(auth.authToken())));
     }
 
-    @Test
-    void clear() throws ResponseException {
-        String[] usernames = {"user1", "user2", "user3"};
-        String[] passwords = {"pw1", "pw2", "pw3"};
-        String[] emails = {"em1@e.com", "em2@e.com", "em3@e.com"};
-        String[] auths = new String[3];
-        for (var i = 0; i < 3; i++) {
-            userService.register(new RegisterRequest(usernames[i], passwords[i], emails[i]));
-            auths[i] = userService.login(new LoginRequest(usernames[i], passwords[i])).authToken();
-        }
-        userService.clear();
-        for (var i = 0; i < 3; i++) {
-            int finalI = i;
-            assertThrows(ResponseException.class,
-                    () -> userService.login(new LoginRequest(usernames[finalI], passwords[finalI])));
-            assertNull(authDAO.getAuth(auths[i]));
-        }
-    }
+//    @Test
+//    void clear() throws ResponseException {
+//        String[] usernames = {"user1", "user2", "user3"};
+//        String[] passwords = {"pw1", "pw2", "pw3"};
+//        String[] emails = {"em1@e.com", "em2@e.com", "em3@e.com"};
+//        String[] auths = new String[3];
+//        for (var i = 0; i < 3; i++) {
+//            userService.register(new RegisterRequest(usernames[i], passwords[i], emails[i]));
+//            auths[i] = userService.login(new LoginRequest(usernames[i], passwords[i])).authToken();
+//        }
+//        userService.clear();
+//        for (var i = 0; i < 3; i++) {
+//            int finalI = i;
+//            assertThrows(ResponseException.class,
+//                    () -> userService.login(new LoginRequest(usernames[finalI], passwords[finalI])));
+//            assertNull(authDAO.getAuth(auths[i]));
+//        }
+//    }
 }

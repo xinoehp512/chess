@@ -5,13 +5,14 @@ import com.google.gson.JsonSyntaxException;
 import dataaccess.MemoryAuthDAO;
 import dataaccess.MemoryGameDAO;
 import dataaccess.MemoryUserDAO;
-import io.javalin.*;
+import io.javalin.Javalin;
 import io.javalin.http.Context;
 import models.AuthData;
 import org.jetbrains.annotations.NotNull;
 import requests.*;
 import response.CreateGameResponse;
 import response.ListGamesResponse;
+import services.AdminService;
 import services.GameService;
 import services.UserService;
 
@@ -22,6 +23,7 @@ public class Server {
     private final Javalin server;
     private final GameService gameService;
     private final UserService userService;
+    private final AdminService adminService;
     private final Gson serializer = new Gson();
 
     public Server() {
@@ -30,6 +32,8 @@ public class Server {
         var gameDAO = new MemoryGameDAO();
         gameService = new GameService(gameDAO, authDAO);
         userService = new UserService(userDAO, authDAO);
+        adminService = new AdminService(gameDAO, authDAO, userDAO);
+
 
         server = Javalin.create(config -> config.staticFiles.add("web"));
         server.delete("db", this::clear);
@@ -45,8 +49,7 @@ public class Server {
     }
 
     private void clear(@NotNull Context ctx) {
-        gameService.clear();
-        userService.clear();
+        adminService.clear();
         ctx.result("{}");
     }
 
@@ -89,15 +92,14 @@ public class Server {
     }
 
     private void joinGame(@NotNull Context ctx) throws ResponseException {
-        JoinGameRequest req = null;
-        String authToken = ctx.header("authorization");
         try {
-            req = serializer.fromJson(ctx.body(), JoinGameRequest.class);
+            String authToken = ctx.header("authorization");
+            JoinGameRequest req = serializer.fromJson(ctx.body(), JoinGameRequest.class);
+            gameService.joinGame(req, authToken);
+            ctx.result("{}");
         } catch (JsonSyntaxException e) {
             throw new ResponseException("Error: bad request", 400);
         }
-        gameService.joinGame(req, authToken);
-        ctx.result("{}");
     }
 
     private void exceptionHandler(@NotNull ResponseException e, @NotNull Context ctx) {

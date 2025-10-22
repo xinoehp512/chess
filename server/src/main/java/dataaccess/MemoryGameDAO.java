@@ -2,7 +2,9 @@ package dataaccess;
 
 import models.GameData;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class MemoryGameDAO implements GameDAO {
@@ -36,5 +38,10 @@ public class MemoryGameDAO implements GameDAO {
             throw new DataAccessException("Can't update a game that doesn't exist!");
         }
         table.put(gameData.gameID(), gameData);
+    }
+
+    @Override
+    public List<GameData> getAll() {
+        return new ArrayList<>(table.values());
     }
 }

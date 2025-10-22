@@ -60,12 +60,7 @@ public class UserService {
     }
 
     private UserData makeUser(RegisterRequest registerRequest) {
-        return new UserData(registerRequest.username(), registerRequest.password(), registerRequest.email());
-    }
-
-
-    public void clear() {
-        userDAO.clear();
-        authDAO.clear();
+        return new UserData(registerRequest.username(), registerRequest.password(),
+                registerRequest.email());
     }
 }

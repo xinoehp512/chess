@@ -13,6 +13,8 @@ import requests.ResponseException;
 import response.CreateGameResponse;
 import response.ListGamesResponse;
 
+import java.util.List;
+
 public class GameService {
     private final GameDAO gameDAO;
     private final AuthDAO authDAO;
@@ -21,9 +23,6 @@ public class GameService {
     public GameService(GameDAO gameDAO, AuthDAO authDAO) {
         this.gameDAO = gameDAO;
         this.authDAO = authDAO;
-    }
-
-    public void clear() {
     }
 
     public CreateGameResponse createGame(CreateGameRequest createGameRequest, String authToken) throws ResponseException {
@@ -43,8 +42,10 @@ public class GameService {
         return auth;
     }
 
-    public ListGamesResponse listGames(String authToken) {
-        return null;
+    public ListGamesResponse listGames(String authToken) throws ResponseException {
+        verifyAuth(authToken);
+        List<GameData> games = gameDAO.getAll();
+        return new ListGamesResponse(games);
     }
 
     public void joinGame(JoinGameRequest joinGameRequest, String authToken) throws ResponseException {
