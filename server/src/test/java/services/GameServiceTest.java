@@ -60,6 +60,12 @@ class GameServiceTest {
     }
 
     @Test
+    void listGamesBadAuth() {
+        assertThrows(ResponseException.class, () -> gameService.createGame(new CreateGameRequest(
+                "Game 1"), "bad"));
+    }
+
+    @Test
     void joinGameWhite() throws ResponseException {
         String gameName = "Game 1";
         var response = gameService.createGame(new CreateGameRequest(gameName),
