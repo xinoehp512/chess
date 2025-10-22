@@ -2,12 +2,15 @@ package services;
 
 import dataaccess.*;
 import models.AuthData;
+import models.GameData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import requests.CreateGameRequest;
 import requests.JoinGameRequest;
 import requests.RegisterRequest;
 import requests.ResponseException;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -29,10 +32,6 @@ class GameServiceTest {
     }
 
     @Test
-    void clear() {
-    }
-
-    @Test
     void createGame() throws ResponseException {
         String gameName = "Game 1";
         var response = gameService.createGame(new CreateGameRequest(gameName),
@@ -42,7 +41,14 @@ class GameServiceTest {
     }
 
     @Test
-    void listGames() {
+    void listGames() throws ResponseException {
+        gameService.createGame(new CreateGameRequest("Game 1"),authData.authToken());
+        gameService.createGame(new CreateGameRequest("Game 2"),authData.authToken());
+        gameService.createGame(new CreateGameRequest("Game 3"),authData.authToken());
+
+        List<GameData> games = gameDAO.getAll();
+        int numGames = games.size();
+        assertEquals(3, numGames);
     }
 
     @Test
