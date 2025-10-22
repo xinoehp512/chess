@@ -1,6 +1,7 @@
 package server;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import dataaccess.MemoryAuthDAO;
 import dataaccess.MemoryGameDAO;
 import dataaccess.MemoryUserDAO;
@@ -27,8 +28,8 @@ public class Server {
         var authDAO = new MemoryAuthDAO();
         var userDAO = new MemoryUserDAO();
         var gameDAO = new MemoryGameDAO();
-        gameService = new GameService(gameDAO,authDAO);
-        userService = new UserService(userDAO,authDAO);
+        gameService = new GameService(gameDAO, authDAO);
+        userService = new UserService(userDAO, authDAO);
 
         server = Javalin.create(config -> config.staticFiles.add("web"));
         server.delete("db", this::clear);
@@ -62,35 +63,40 @@ public class Server {
         var req = serializer.fromJson(ctx.body(), Map.class);
         String username = (String) req.get("username");
         String password = (String) req.get("password");
-        AuthData authData = userService.login(new LoginRequest(username,password));
+        AuthData authData = userService.login(new LoginRequest(username, password));
 
         var res = Map.of("username", authData.username(), "authToken", authData.authToken());
         ctx.result(serializer.toJson(res));
     }
 
     private void logout(@NotNull Context ctx) throws ResponseException {
-        String authToken = serializer.fromJson(ctx.header("authorization"), String.class);
+        String authToken = ctx.header("authorization");
         userService.logout(new LogoutRequest(authToken));
         ctx.result("{}");
     }
 
     private void listGames(@NotNull Context ctx) throws ResponseException {
-        String authToken = serializer.fromJson(ctx.header("authorization"), String.class);
+        String authToken = ctx.header("authorization");
         ListGamesResponse res = gameService.listGames(authToken);
         ctx.result(serializer.toJson(res));
     }
 
     private void createGame(@NotNull Context ctx) throws ResponseException {
-        var req = serializer.fromJson(ctx.body(),CreateGameRequest.class);
-        String authToken = serializer.fromJson(ctx.header("authorization"), String.class);
-        CreateGameResponse res = gameService.createGame(req,authToken);
+        var req = serializer.fromJson(ctx.body(), CreateGameRequest.class);
+        String authToken = ctx.header("authorization");
+        CreateGameResponse res = gameService.createGame(req, authToken);
         ctx.result(serializer.toJson(res));
     }
 
     private void joinGame(@NotNull Context ctx) throws ResponseException {
-        var req = serializer.fromJson(ctx.body(),JoinGameRequest.class);
-        String authToken = serializer.fromJson(ctx.header("authorization"), String.class);
-        gameService.joinGame(req,authToken);
+        JoinGameRequest req = null;
+        String authToken = ctx.header("authorization");
+        try {
+            req = serializer.fromJson(ctx.body(), JoinGameRequest.class);
+        } catch (JsonSyntaxException e) {
+            throw new ResponseException("Error: bad request", 400);
+        }
+        gameService.joinGame(req, authToken);
         ctx.result("{}");
     }
 
@@ -99,7 +105,7 @@ public class Server {
         ctx.result(e.toJson());
     }
 
-  
+
     public int run(int desiredPort) {
         server.start(desiredPort);
         return server.port();
