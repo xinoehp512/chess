@@ -41,10 +41,17 @@ class GameServiceTest {
     }
 
     @Test
+    void createBadAuth() {
+        String gameName = "Game 1";
+        assertThrows(ResponseException.class,
+                () -> gameService.createGame(new CreateGameRequest(gameName), "bad"));
+    }
+
+    @Test
     void listGames() throws ResponseException {
-        gameService.createGame(new CreateGameRequest("Game 1"),authData.authToken());
-        gameService.createGame(new CreateGameRequest("Game 2"),authData.authToken());
-        gameService.createGame(new CreateGameRequest("Game 3"),authData.authToken());
+        gameService.createGame(new CreateGameRequest("Game 1"), authData.authToken());
+        gameService.createGame(new CreateGameRequest("Game 2"), authData.authToken());
+        gameService.createGame(new CreateGameRequest("Game 3"), authData.authToken());
 
         List<GameData> games = gameDAO.getAll();
         int numGames = games.size();
