@@ -16,4 +16,8 @@ public record GameData(int gameID, String whiteUsername, String blackUsername, S
             case BLACK -> new GameData(gameID, whiteUsername, username, gameName, game);
         };
     }
+
+    public GameData addID(int gameID) {
+        return new GameData(gameID, whiteUsername, blackUsername, gameName, game);
+    }
 }

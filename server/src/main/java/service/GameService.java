@@ -18,7 +18,6 @@ import java.util.List;
 public class GameService {
     private final GameDAO gameDAO;
     private final AuthDAO authDAO;
-    private int id = 1;
 
     public GameService(GameDAO gameDAO, AuthDAO authDAO) {
         this.gameDAO = gameDAO;
@@ -28,9 +27,8 @@ public class GameService {
     public CreateGameResponse createGame(CreateGameRequest createGameRequest, String authToken) throws ResponseException {
         createGameRequest.assertGood();
         verifyAuth(authToken);
-        int gameID = generateGameID();
-        GameData gameData = new GameData(gameID, null, null, createGameRequest.gameName(), null);
-        gameDAO.insertGame(gameData);
+        GameData gameData = new GameData(0, null, null, createGameRequest.gameName(), null);
+        int gameID = gameDAO.insertGame(gameData);
         return new CreateGameResponse(gameID);
     }
 
@@ -76,8 +74,4 @@ public class GameService {
         return game.addColor(color, username);
     }
 
-
-    private int generateGameID() {
-        return id++;
-    }
 }
