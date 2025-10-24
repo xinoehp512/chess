@@ -20,6 +20,14 @@ class AuthDAOTest {
 
     @ParameterizedTest
     @ValueSource(classes = {MemoryAuthDAO.class})
+    void getNullAuth(Class<? extends AuthDAO> authDAOClass) throws Exception {
+        var authDAO = authDAOClass.getDeclaredConstructor().newInstance();
+        var authData = new AuthData("token", "username");
+        assertNull(authDAO.getAuth(authData.authToken()));
+    }
+
+    @ParameterizedTest
+    @ValueSource(classes = {MemoryAuthDAO.class})
     void deleteAuth(Class<? extends AuthDAO> authDAOClass) throws Exception {
         var authDAO = authDAOClass.getDeclaredConstructor().newInstance();
         var authData = new AuthData("token", "username");
