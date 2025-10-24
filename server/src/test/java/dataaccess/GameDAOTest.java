@@ -1,9 +1,10 @@
 package dataaccess;
 
-import models.AuthData;
 import models.GameData;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+
+import java.util.HashSet;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -66,5 +67,22 @@ class GameDAOTest {
     @ParameterizedTest
     @ValueSource(classes = {MemoryGameDAO.class})
     void getAll(Class<? extends GameDAO> gameDAOClass) throws Exception {
+        var gameDAO = gameDAOClass.getDeclaredConstructor().newInstance();
+
+        String[] whiteUsernames = {"white1", "white2", "white3"};
+        String[] blackUsernames = {"black1", "black2", "black3"};
+        String[] gameNames = {"game1", "game2", "game3"};
+
+        var gameData = new HashSet<>();
+        int[] gameIDs = new int[3];
+        for (var i = 0; i < 3; i++) {
+            var gameDatum = new GameData(0, whiteUsernames[i], blackUsernames[i], gameNames[i],
+                    null);
+            gameIDs[i] = gameDAO.insertGame(gameDatum);
+            gameData.add(gameDatum.addID(gameIDs[i]));
+        }
+
+        var gameDataRetrieved = new HashSet<>(gameDAO.getAll());
+        assertEquals(gameData, gameDataRetrieved);
     }
 }
