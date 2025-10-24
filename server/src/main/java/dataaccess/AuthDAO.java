@@ -12,5 +12,5 @@ public interface AuthDAO {
 
     void clear();
 
-    boolean authIsValid(AuthData authToken);
+    boolean authIsValid(AuthData authData);
 }
