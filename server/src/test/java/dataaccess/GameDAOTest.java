@@ -11,15 +11,19 @@ class GameDAOTest {
 
     @ParameterizedTest
     @ValueSource(classes = {MemoryGameDAO.class})
-    void getGame(Class<? extends GameDAO> gameDAOClass) throws Exception {
+    void getNullGame(Class<? extends GameDAO> gameDAOClass) throws Exception {
+        var gameDAO = gameDAOClass.getDeclaredConstructor().newInstance();
+        assertNull(gameDAO.getGame(0));
     }
 
     @ParameterizedTest
     @ValueSource(classes = {MemoryGameDAO.class})
     void insertGame(Class<? extends GameDAO> gameDAOClass) throws Exception {
         var gameDAO = gameDAOClass.getDeclaredConstructor().newInstance();
-        var gameData = new GameData(0,"white", "black", "game1", null);
-
+        var gameData = new GameData(0, "white", "black", "game1", null);
+        var gameID = gameDAO.insertGame(gameData);
+        var storedGameData = gameDAO.getGame(gameID);
+        assertEquals(gameData.addID(gameID), storedGameData);
     }
 
     @ParameterizedTest
