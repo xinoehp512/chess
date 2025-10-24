@@ -1,7 +1,7 @@
 package dataaccess;
 
+import models.AuthData;
 import models.GameData;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -39,6 +39,17 @@ class GameDAOTest {
     @ParameterizedTest
     @ValueSource(classes = {MemoryGameDAO.class})
     void clear(Class<? extends GameDAO> gameDAOClass) throws Exception {
+        var gameDAO = gameDAOClass.getDeclaredConstructor().newInstance();
+
+        int[] gameIDs = new int[3];
+        for (var i = 0; i < 3; i++) {
+            var gameData = new GameData(0, "white", "black", "game1", null);
+            gameIDs[i] = gameDAO.insertGame(gameData);
+        }
+        gameDAO.clear();
+        for (var i = 0; i < 3; i++) {
+            assertNull(gameDAO.getGame(gameIDs[i]));
+        }
     }
 
     @ParameterizedTest
