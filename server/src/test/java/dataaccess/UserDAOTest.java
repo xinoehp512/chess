@@ -2,14 +2,19 @@ package dataaccess;
 
 import models.UserData;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class UserDAOTest {
+    private static List<Class<? extends UserDAO>> provideClasses() {
+        return List.of(MemoryUserDAO.class);
+    }
 
     @ParameterizedTest
-    @ValueSource(classes = {MemoryUserDAO.class})
+    @MethodSource("provideClasses")
     void insertUser(Class<? extends UserDAO> userDAOClass) throws Exception {
         var userDAO = userDAOClass.getDeclaredConstructor().newInstance();
         var userData = new UserData("user", "pass", "k@k.com");
@@ -18,7 +23,7 @@ class UserDAOTest {
     }
 
     @ParameterizedTest
-    @ValueSource(classes = {MemoryUserDAO.class})
+    @MethodSource("provideClasses")
     void insertDuplicateUsername(Class<? extends UserDAO> userDAOClass) throws Exception {
         var userDAO = userDAOClass.getDeclaredConstructor().newInstance();
         var userData = new UserData("user", "pass", "k@k.com");
@@ -28,7 +33,7 @@ class UserDAOTest {
     }
 
     @ParameterizedTest
-    @ValueSource(classes = {MemoryUserDAO.class})
+    @MethodSource("provideClasses")
     void clear(Class<? extends UserDAO> userDAOClass) throws Exception {
         var userDAO = userDAOClass.getDeclaredConstructor().newInstance();
         String[] usernames = {"user1", "user2", "user3"};

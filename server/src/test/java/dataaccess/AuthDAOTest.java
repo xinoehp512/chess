@@ -2,15 +2,20 @@ package dataaccess;
 
 import models.AuthData;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class AuthDAOTest {
 
+    private static List<Class<? extends AuthDAO>> provideClasses() {
+        return List.of(MemoryAuthDAO.class);
+    }
 
     @ParameterizedTest
-    @ValueSource(classes = {MemoryAuthDAO.class})
+    @MethodSource("provideClasses")
     void insertAuth(Class<? extends AuthDAO> authDAOClass) throws Exception {
         var authDAO = authDAOClass.getDeclaredConstructor().newInstance();
         var authData = new AuthData("token", "username");
@@ -19,7 +24,7 @@ class AuthDAOTest {
     }
 
     @ParameterizedTest
-    @ValueSource(classes = {MemoryAuthDAO.class})
+    @MethodSource("provideClasses")
     void getNullAuth(Class<? extends AuthDAO> authDAOClass) throws Exception {
         var authDAO = authDAOClass.getDeclaredConstructor().newInstance();
         var authData = new AuthData("token", "username");
@@ -27,7 +32,7 @@ class AuthDAOTest {
     }
 
     @ParameterizedTest
-    @ValueSource(classes = {MemoryAuthDAO.class})
+    @MethodSource("provideClasses")
     void deleteAuth(Class<? extends AuthDAO> authDAOClass) throws Exception {
         var authDAO = authDAOClass.getDeclaredConstructor().newInstance();
         var authData = new AuthData("token", "username");
@@ -37,7 +42,7 @@ class AuthDAOTest {
     }
 
     @ParameterizedTest
-    @ValueSource(classes = {MemoryAuthDAO.class})
+    @MethodSource("provideClasses")
     void deleteAuthTwice(Class<? extends AuthDAO> authDAOClass) throws Exception {
         var authDAO = authDAOClass.getDeclaredConstructor().newInstance();
         var authData = new AuthData("token", "username");
@@ -47,7 +52,7 @@ class AuthDAOTest {
     }
 
     @ParameterizedTest
-    @ValueSource(classes = {MemoryAuthDAO.class})
+    @MethodSource("provideClasses")
     void clear(Class<? extends AuthDAO> authDAOClass) throws Exception {
         var authDAO = authDAOClass.getDeclaredConstructor().newInstance();
         String[] usernames = {"user1", "user2", "user3"};
@@ -64,7 +69,7 @@ class AuthDAOTest {
     }
 
     @ParameterizedTest
-    @ValueSource(classes = {MemoryAuthDAO.class})
+    @MethodSource("provideClasses")
     void validAuthIsValid(Class<? extends AuthDAO> authDAOClass) throws Exception {
         var authDAO = authDAOClass.getDeclaredConstructor().newInstance();
         var authData = new AuthData("token", "username");
@@ -73,7 +78,7 @@ class AuthDAOTest {
     }
 
     @ParameterizedTest
-    @ValueSource(classes = {MemoryAuthDAO.class})
+    @MethodSource("provideClasses")
     void invalidAuthIsInvalid(Class<? extends AuthDAO> authDAOClass) throws Exception {
         var authDAO = authDAOClass.getDeclaredConstructor().newInstance();
         var authData = new AuthData("token", "username");

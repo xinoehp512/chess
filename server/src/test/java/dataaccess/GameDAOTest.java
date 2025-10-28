@@ -2,23 +2,28 @@ package dataaccess;
 
 import models.GameData;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.HashSet;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class GameDAOTest {
 
+    private static List<Class<? extends GameDAO>> provideClasses() {
+        return List.of(MemoryGameDAO.class);
+    }
+
     @ParameterizedTest
-    @ValueSource(classes = {MemoryGameDAO.class})
+    @MethodSource("provideClasses")
     void getNullGame(Class<? extends GameDAO> gameDAOClass) throws Exception {
         var gameDAO = gameDAOClass.getDeclaredConstructor().newInstance();
         assertNull(gameDAO.getGame(0));
     }
 
     @ParameterizedTest
-    @ValueSource(classes = {MemoryGameDAO.class})
+    @MethodSource("provideClasses")
     void insertGame(Class<? extends GameDAO> gameDAOClass) throws Exception {
         var gameDAO = gameDAOClass.getDeclaredConstructor().newInstance();
         var gameData = new GameData(0, "white", "black", "game1", null);
@@ -28,7 +33,7 @@ class GameDAOTest {
     }
 
     @ParameterizedTest
-    @ValueSource(classes = {MemoryGameDAO.class})
+    @MethodSource("provideClasses")
     void deleteGame(Class<? extends GameDAO> gameDAOClass) throws Exception {
         var gameDAO = gameDAOClass.getDeclaredConstructor().newInstance();
         var gameData = new GameData(0, "white", "black", "game1", null);
@@ -38,14 +43,14 @@ class GameDAOTest {
     }
 
     @ParameterizedTest
-    @ValueSource(classes = {MemoryGameDAO.class})
+    @MethodSource("provideClasses")
     void deleteNoGame(Class<? extends GameDAO> gameDAOClass) throws Exception {
         var gameDAO = gameDAOClass.getDeclaredConstructor().newInstance();
         assertThrows(DataAccessException.class, () -> gameDAO.deleteGame(0));
     }
 
     @ParameterizedTest
-    @ValueSource(classes = {MemoryGameDAO.class})
+    @MethodSource("provideClasses")
     void clear(Class<? extends GameDAO> gameDAOClass) throws Exception {
         var gameDAO = gameDAOClass.getDeclaredConstructor().newInstance();
 
@@ -61,7 +66,7 @@ class GameDAOTest {
     }
 
     @ParameterizedTest
-    @ValueSource(classes = {MemoryGameDAO.class})
+    @MethodSource("provideClasses")
     void updateGame(Class<? extends GameDAO> gameDAOClass) throws Exception {
         var gameDAO = gameDAOClass.getDeclaredConstructor().newInstance();
         var gameData = new GameData(0, null, null, null, null);
@@ -72,7 +77,7 @@ class GameDAOTest {
     }
 
     @ParameterizedTest
-    @ValueSource(classes = {MemoryGameDAO.class})
+    @MethodSource("provideClasses")
     void updateNoGame(Class<? extends GameDAO> gameDAOClass) throws Exception {
         var gameDAO = gameDAOClass.getDeclaredConstructor().newInstance();
         var gameData = new GameData(0, "white", "black", "game1", null);
@@ -80,7 +85,7 @@ class GameDAOTest {
     }
 
     @ParameterizedTest
-    @ValueSource(classes = {MemoryGameDAO.class})
+    @MethodSource("provideClasses")
     void getAll(Class<? extends GameDAO> gameDAOClass) throws Exception {
         var gameDAO = gameDAOClass.getDeclaredConstructor().newInstance();
 
