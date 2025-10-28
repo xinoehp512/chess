@@ -1,8 +1,6 @@
 package dataaccess;
 
-import models.AuthData;
 import models.UserData;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -29,7 +27,19 @@ class UserDAOTest {
         assertThrows(DataAccessException.class, () -> userDAO.insertUser(userData2));
     }
 
-    @Test
-    void clear() {
+    @ParameterizedTest
+    @ValueSource(classes = {MemoryUserDAO.class})
+    void clear(Class<? extends UserDAO> userDAOClass) throws Exception {
+        var userDAO = userDAOClass.getDeclaredConstructor().newInstance();
+        String[] usernames = {"user1", "user2", "user3"};
+        String[] passwords = {"pw1", "pw2", "pw3"};
+        String[] emails = {"em1@e.com", "em2@e.com", "em3@e.com"};
+        for (var i = 0; i < 3; i++) {
+            userDAO.insertUser(new UserData(usernames[i], passwords[i], emails[i]));
+        }
+        userDAO.clear();
+        for (var i = 0; i < 3; i++) {
+            assertNull(userDAO.getUser(usernames[i]));
+        }
     }
 }
