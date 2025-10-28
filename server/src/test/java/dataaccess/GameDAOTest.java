@@ -73,6 +73,14 @@ class GameDAOTest {
 
     @ParameterizedTest
     @ValueSource(classes = {MemoryGameDAO.class})
+    void updateNoGame(Class<? extends GameDAO> gameDAOClass) throws Exception {
+        var gameDAO = gameDAOClass.getDeclaredConstructor().newInstance();
+        var gameData = new GameData(0, "white", "black", "game1", null);
+        assertThrows(DataAccessException.class, () -> gameDAO.updateGame(gameData));
+    }
+
+    @ParameterizedTest
+    @ValueSource(classes = {MemoryGameDAO.class})
     void getAll(Class<? extends GameDAO> gameDAOClass) throws Exception {
         var gameDAO = gameDAOClass.getDeclaredConstructor().newInstance();
 
