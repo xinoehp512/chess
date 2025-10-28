@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class AuthDAOTest {
 
     private static List<Class<? extends AuthDAO>> provideClasses() {
-        return List.of(MemoryAuthDAO.class);
+        return List.of(MemoryAuthDAO.class, DatabaseAuthDAO.class);
     }
 
     @ParameterizedTest

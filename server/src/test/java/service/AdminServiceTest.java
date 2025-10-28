@@ -30,7 +30,7 @@ class AdminServiceTest {
     }
 
     @Test
-    void clear() throws ResponseException {
+    void clear() throws ResponseException, DataAccessException {
         String[] usernames = {"user1", "user2", "user3"};
         String[] passwords = {"pw1", "pw2", "pw3"};
         String[] emails = {"em1@e.com", "em2@e.com", "em3@e.com"};

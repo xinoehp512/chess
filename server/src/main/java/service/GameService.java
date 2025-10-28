@@ -33,7 +33,12 @@ public class GameService {
     }
 
     private AuthData verifyAuth(String authToken) throws ResponseException {
-        var auth = authDAO.getAuth(authToken);
+        AuthData auth = null;
+        try {
+            auth = authDAO.getAuth(authToken);
+        } catch (DataAccessException e) {
+            throw new ResponseException("Error: database", 500);
+        }
         if (auth == null) {
             throw new ResponseException("Error: unauthorized", 401);
         }

@@ -49,9 +49,13 @@ public class UserService {
         }
     }
 
-    private AuthData makeAuth(UserData userData) {
+    private AuthData makeAuth(UserData userData) throws ResponseException {
         AuthData authData = new AuthData(generateAuthToken(), userData.username());
-        authDAO.insertAuth(authData);
+        try {
+            authDAO.insertAuth(authData);
+        } catch (DataAccessException e) {
+            throw new ResponseException("Error: database", 500);
+        }
         return authData;
     }
 
