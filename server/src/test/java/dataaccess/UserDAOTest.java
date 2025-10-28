@@ -19,6 +19,16 @@ class UserDAOTest {
         assertEquals(userData, userDAO.getUser(userData.username()));
     }
 
+    @ParameterizedTest
+    @ValueSource(classes = {MemoryUserDAO.class})
+    void insertDuplicateUsername(Class<? extends UserDAO> userDAOClass) throws Exception {
+        var userDAO = userDAOClass.getDeclaredConstructor().newInstance();
+        var userData = new UserData("user", "pass", "k@k.com");
+        userDAO.insertUser(userData);
+        var userData2 = new UserData("user", "pass2", "k2@k.com");
+        assertThrows(DataAccessException.class, () -> userDAO.insertUser(userData2));
+    }
+
     @Test
     void clear() {
     }
