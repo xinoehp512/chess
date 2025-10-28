@@ -36,8 +36,8 @@ public class DatabaseAuthDAO implements AuthDAO {
 
     @Override
     public AuthData getAuth(String authToken) throws DataAccessException {
+        var statement = "SELECT authToken, username FROM auth WHERE authToken=?";
         try (Connection connection = DatabaseManager.getConnection()) {
-            var statement = "SELECT authToken, username FROM auth WHERE authToken=?";
             try (var preparedStatement = connection.prepareStatement(statement)) {
                 preparedStatement.setString(1, authToken);
                 try (ResultSet resultSet = preparedStatement.executeQuery()) {
@@ -49,39 +49,47 @@ public class DatabaseAuthDAO implements AuthDAO {
 
             }
         } catch (DataAccessException | SQLException e) {
-            throw new DataAccessException("Couldn't get Auth");
+            throw new DataAccessException("Database Error: ", e);
         }
         return null;
     }
 
     @Override
     public void insertAuth(AuthData authData) throws DataAccessException {
+        var statement = "INSERT INTO auth (authToken, username) VALUES (?, ?)";
         try (Connection connection = DatabaseManager.getConnection()) {
-            var statement = "INSERT INTO auth (authToken, username) VALUES (?, ?)";
             try (var preparedStatement = connection.prepareStatement(statement)) {
                 preparedStatement.setString(1, authData.authToken());
                 preparedStatement.setString(2, authData.username());
                 preparedStatement.execute();
             }
         } catch (DataAccessException | SQLException e) {
-            throw new DataAccessException("Couldn't insert Auth");
+            throw new DataAccessException("Database Error: ", e);
         }
     }
 
     @Override
     public void deleteAuth(String authToken) throws DataAccessException {
-
+        var statement = "DELETE FROM auth WHERE authToken=?";
+        try (Connection connection = DatabaseManager.getConnection()) {
+            try (var preparedStatement = connection.prepareStatement(statement)) {
+                preparedStatement.setString(1, authToken);
+                preparedStatement.execute();
+            }
+        } catch (DataAccessException | SQLException e) {
+            throw new DataAccessException("Database Error: ", e);
+        }
     }
 
     @Override
     public void clear() throws DataAccessException {
+        var statement = "TRUNCATE auth";
         try (Connection connection = DatabaseManager.getConnection()) {
-            var statement = "TRUNCATE auth";
             try (var preparedStatement = connection.prepareStatement(statement)) {
                 preparedStatement.execute();
             }
         } catch (DataAccessException | SQLException e) {
-            throw new DataAccessException("Unable to clear database.");
+            throw new DataAccessException("Database Error: ", e);
         }
     }
 

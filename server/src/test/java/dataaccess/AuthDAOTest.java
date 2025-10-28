@@ -37,6 +37,7 @@ class AuthDAOTest {
     @MethodSource("provideClasses")
     void deleteAuth(Class<? extends AuthDAO> authDAOClass) throws Exception {
         var authDAO = authDAOClass.getDeclaredConstructor().newInstance();
+        authDAO.clear();
         var authData = new AuthData("token", "username");
         authDAO.insertAuth(authData);
         authDAO.deleteAuth(authData.authToken());
@@ -47,6 +48,7 @@ class AuthDAOTest {
     @MethodSource("provideClasses")
     void deleteAuthTwice(Class<? extends AuthDAO> authDAOClass) throws Exception {
         var authDAO = authDAOClass.getDeclaredConstructor().newInstance();
+        authDAO.clear();
         var authData = new AuthData("token", "username");
         authDAO.insertAuth(authData);
         authDAO.deleteAuth(authData.authToken());
@@ -74,6 +76,7 @@ class AuthDAOTest {
     @MethodSource("provideClasses")
     void validAuthIsValid(Class<? extends AuthDAO> authDAOClass) throws Exception {
         var authDAO = authDAOClass.getDeclaredConstructor().newInstance();
+        authDAO.clear();
         var authData = new AuthData("token", "username");
         authDAO.insertAuth(authData);
         assertTrue(authDAO.authIsValid(authData));
