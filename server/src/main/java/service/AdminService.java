@@ -1,8 +1,10 @@
 package service;
 
 import dataaccess.AuthDAO;
+import dataaccess.DataAccessException;
 import dataaccess.GameDAO;
 import dataaccess.UserDAO;
+import requests.ResponseException;
 
 public class AdminService {
     private final GameDAO gameDAO;
@@ -15,9 +17,13 @@ public class AdminService {
         this.userDAO = userDAO;
     }
 
-    public void clear() {
-        userDAO.clear();
-        authDAO.clear();
-        gameDAO.clear();
+    public void clear() throws ResponseException {
+        try {
+            userDAO.clear();
+            authDAO.clear();
+            gameDAO.clear();
+        } catch (DataAccessException e) {
+            throw new ResponseException("Database Error", 500);
+        }
     }
 }

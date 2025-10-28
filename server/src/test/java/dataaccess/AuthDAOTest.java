@@ -18,6 +18,7 @@ class AuthDAOTest {
     @MethodSource("provideClasses")
     void insertAuth(Class<? extends AuthDAO> authDAOClass) throws Exception {
         var authDAO = authDAOClass.getDeclaredConstructor().newInstance();
+        authDAO.clear();
         var authData = new AuthData("token", "username");
         authDAO.insertAuth(authData);
         assertEquals(authData, authDAO.getAuth(authData.authToken()));
@@ -27,6 +28,7 @@ class AuthDAOTest {
     @MethodSource("provideClasses")
     void getNullAuth(Class<? extends AuthDAO> authDAOClass) throws Exception {
         var authDAO = authDAOClass.getDeclaredConstructor().newInstance();
+        authDAO.clear();
         var authData = new AuthData("token", "username");
         assertNull(authDAO.getAuth(authData.authToken()));
     }

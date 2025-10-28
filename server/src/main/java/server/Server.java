@@ -48,7 +48,7 @@ public class Server {
 
     }
 
-    private void clear(@NotNull Context ctx) {
+    private void clear(@NotNull Context ctx) throws ResponseException {
         adminService.clear();
         ctx.result("{}");
     }
