@@ -90,7 +90,13 @@ public class DatabaseGameDAO implements GameDAO {
 
     @Override
     public void updateGame(GameData updatedGame) throws DataAccessException {
-
+        if (getGame(updatedGame.gameID()) == null) {
+            throw new DataAccessException("Auth Token is bad!");
+        }
+        var statement = "UPDATE game SET whiteUsername=?, blackUsername=?, gameName=?, game=? " +
+                        "WHERE gameID=?";
+        executeUpdate(statement, updatedGame.whiteUsername(), updatedGame.blackUsername(),
+                updatedGame.gameName(), updatedGame.game(), updatedGame.gameID());
     }
 
     @Override
