@@ -22,7 +22,7 @@ class GameServiceTest {
     private AuthData authDataOtherUser;
 
     @BeforeEach
-    void initGameService() throws ResponseException {
+    void initGameService() throws Exception {
         gameDAO = new MemoryGameDAO();
         authDAO = new MemoryAuthDAO();
         gameService = new GameService(gameDAO, authDAO);
@@ -32,7 +32,7 @@ class GameServiceTest {
     }
 
     @Test
-    void createGame() throws ResponseException {
+    void createGame() throws Exception {
         String gameName = "Game 1";
         var response = gameService.createGame(new CreateGameRequest(gameName),
                 authData.authToken());
@@ -48,7 +48,7 @@ class GameServiceTest {
     }
 
     @Test
-    void listGames() throws ResponseException {
+    void listGames() throws Exception {
         gameService.createGame(new CreateGameRequest("Game 1"), authData.authToken());
         gameService.createGame(new CreateGameRequest("Game 2"), authData.authToken());
         gameService.createGame(new CreateGameRequest("Game 3"), authData.authToken());
@@ -66,7 +66,7 @@ class GameServiceTest {
     }
 
     @Test
-    void joinGameWhite() throws ResponseException {
+    void joinGameWhite() throws Exception {
         String gameName = "Game 1";
         var response = gameService.createGame(new CreateGameRequest(gameName),
                 authData.authToken());
@@ -78,7 +78,7 @@ class GameServiceTest {
     }
 
     @Test
-    void joinGameBlack() throws ResponseException {
+    void joinGameBlack() throws Exception {
         String gameName = "Game 1";
         var response = gameService.createGame(new CreateGameRequest(gameName),
                 authData.authToken());
@@ -90,7 +90,7 @@ class GameServiceTest {
     }
 
     @Test
-    void joinGameBadColor() throws ResponseException {
+    void joinGameBadColor() throws Exception {
         String gameName = "Game 1";
         var response = gameService.createGame(new CreateGameRequest(gameName),
                 authData.authToken());
@@ -101,7 +101,7 @@ class GameServiceTest {
     }
 
     @Test
-    void joinGameColorTaken() throws ResponseException {
+    void joinGameColorTaken() throws Exception {
         String gameName = "Game 1";
         var response = gameService.createGame(new CreateGameRequest(gameName),
                 authData.authToken());

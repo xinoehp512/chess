@@ -34,7 +34,12 @@ public class UserService {
 
     public AuthData login(LoginRequest loginRequest) throws ResponseException {
         loginRequest.assertGood();
-        UserData userData = userDAO.getUser(loginRequest.username());
+        UserData userData;
+        try {
+            userData = userDAO.getUser(loginRequest.username());
+        } catch (DataAccessException e) {
+            throw new ResponseException("Error: database", 500);
+        }
         if (userData == null || !Objects.equals(userData.password(), loginRequest.password())) {
             throw new ResponseException("Error: unauthorized", 401);
         }

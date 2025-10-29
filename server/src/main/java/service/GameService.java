@@ -28,7 +28,12 @@ public class GameService {
         createGameRequest.assertGood();
         verifyAuth(authToken);
         GameData gameData = new GameData(0, null, null, createGameRequest.gameName(), null);
-        int gameID = gameDAO.insertGame(gameData);
+        int gameID;
+        try {
+            gameID = gameDAO.insertGame(gameData);
+        } catch (DataAccessException e) {
+            throw new ResponseException("Error: database", 500);
+        }
         return new CreateGameResponse(gameID);
     }
 
@@ -47,14 +52,24 @@ public class GameService {
 
     public ListGamesResponse listGames(String authToken) throws ResponseException {
         verifyAuth(authToken);
-        List<GameData> games = gameDAO.getAll();
+        List<GameData> games;
+        try {
+            games = gameDAO.getAll();
+        } catch (DataAccessException e) {
+            throw new ResponseException("Error: database", 500);
+        }
         return new ListGamesResponse(games);
     }
 
     public void joinGame(JoinGameRequest joinGameRequest, String authToken) throws ResponseException {
         joinGameRequest.assertGood();
         var auth = verifyAuth(authToken);
-        var game = gameDAO.getGame(joinGameRequest.gameID());
+        GameData game;
+        try {
+            game = gameDAO.getGame(joinGameRequest.gameID());
+        } catch (DataAccessException e) {
+            throw new ResponseException("Error: database", 500);
+        }
         if (game == null) {
             throw new ResponseException("Error: bad request", 400);
         }
