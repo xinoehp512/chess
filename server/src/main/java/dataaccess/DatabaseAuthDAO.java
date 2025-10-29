@@ -5,6 +5,7 @@ import models.AuthData;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Objects;
 
 public class DatabaseAuthDAO implements AuthDAO {
 
@@ -98,6 +99,10 @@ public class DatabaseAuthDAO implements AuthDAO {
 
     @Override
     public boolean authIsValid(AuthData authData) {
-        return false;
+        try {
+            return Objects.equals(getAuth(authData.authToken()), authData);
+        } catch (DataAccessException e) {
+            return false;
+        }
     }
 }

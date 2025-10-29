@@ -86,6 +86,7 @@ class AuthDAOTest {
     @MethodSource("provideClasses")
     void invalidAuthIsInvalid(Class<? extends AuthDAO> authDAOClass) throws Exception {
         var authDAO = authDAOClass.getDeclaredConstructor().newInstance();
+        authDAO.clear();
         var authData = new AuthData("token", "username");
         assertFalse(authDAO.authIsValid(authData));
     }
