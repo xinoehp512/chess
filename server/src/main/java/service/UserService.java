@@ -1,14 +1,16 @@
 package service;
 
-import dataaccess.*;
+import dataaccess.AuthDAO;
+import dataaccess.DataAccessException;
+import dataaccess.UserDAO;
 import models.AuthData;
 import models.UserData;
+import org.mindrot.jbcrypt.BCrypt;
 import requests.LoginRequest;
 import requests.LogoutRequest;
 import requests.RegisterRequest;
 import requests.ResponseException;
 
-import java.util.Objects;
 import java.util.UUID;
 
 public class UserService {
@@ -40,10 +42,14 @@ public class UserService {
         } catch (DataAccessException e) {
             throw new ResponseException("Error: database", 500);
         }
-        if (userData == null || !Objects.equals(userData.password(), loginRequest.password())) {
+        if (userData == null || !verifyPassword(userData.password(), loginRequest.password())) {
             throw new ResponseException("Error: unauthorized", 401);
         }
         return this.makeAuth(userData);
+    }
+
+    private boolean verifyPassword(String hashedPassword, String testPassword) {
+        return BCrypt.checkpw(testPassword, hashedPassword);
     }
 
     public void logout(LogoutRequest logoutRequest) throws ResponseException {
@@ -69,7 +75,7 @@ public class UserService {
     }
 
     private UserData makeUser(RegisterRequest registerRequest) {
-        return new UserData(registerRequest.username(), registerRequest.password(),
-                registerRequest.email());
+        String hashedPassword = BCrypt.hashpw(registerRequest.password(), BCrypt.gensalt());
+        return new UserData(registerRequest.username(), hashedPassword, registerRequest.email());
     }
 }
