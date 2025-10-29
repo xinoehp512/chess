@@ -65,7 +65,6 @@ public class DatabaseGameDAO implements GameDAO {
 
     @Override
     public int insertGame(GameData gameData) throws DataAccessException {
-
         var statement = "INSERT INTO game (gameID, whiteUsername, blackUsername, gameName, game) " +
                         "VALUES (?, ?, ?, ?, ?)";
         return executeUpdate(statement, gameData.gameID(), gameData.whiteUsername(),

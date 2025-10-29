@@ -91,12 +91,6 @@ public class DatabaseAuthDAO implements AuthDAO {
                     }
                 }
                 preparedStatement.executeUpdate();
-
-                ResultSet rs = preparedStatement.getGeneratedKeys();
-                if (rs.next()) {
-                    rs.getInt(1);
-                }
-
             }
         } catch (SQLException e) {
             throw new DataAccessException("Database Error: ", e);

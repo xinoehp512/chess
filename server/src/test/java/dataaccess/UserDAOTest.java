@@ -17,6 +17,7 @@ class UserDAOTest {
     @MethodSource("provideClasses")
     void insertUser(Class<? extends UserDAO> userDAOClass) throws Exception {
         var userDAO = userDAOClass.getDeclaredConstructor().newInstance();
+        userDAO.clear();
         var userData = new UserData("user", "pass", "k@k.com");
         userDAO.insertUser(userData);
         assertEquals(userData, userDAO.getUser(userData.username()));
@@ -26,6 +27,7 @@ class UserDAOTest {
     @MethodSource("provideClasses")
     void insertDuplicateUsername(Class<? extends UserDAO> userDAOClass) throws Exception {
         var userDAO = userDAOClass.getDeclaredConstructor().newInstance();
+        userDAO.clear();
         var userData = new UserData("user", "pass", "k@k.com");
         userDAO.insertUser(userData);
         var userData2 = new UserData("user", "pass2", "k2@k.com");
@@ -36,6 +38,7 @@ class UserDAOTest {
     @MethodSource("provideClasses")
     void clear(Class<? extends UserDAO> userDAOClass) throws Exception {
         var userDAO = userDAOClass.getDeclaredConstructor().newInstance();
+        userDAO.clear();
         String[] usernames = {"user1", "user2", "user3"};
         String[] passwords = {"pw1", "pw2", "pw3"};
         String[] emails = {"em1@e.com", "em2@e.com", "em3@e.com"};
