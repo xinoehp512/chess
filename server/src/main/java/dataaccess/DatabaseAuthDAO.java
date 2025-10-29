@@ -7,16 +7,19 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Objects;
 
+import static java.sql.Statement.RETURN_GENERATED_KEYS;
+import static java.sql.Types.NULL;
+
 public class DatabaseAuthDAO implements AuthDAO {
 
-    private final String[] createStatements = {"""
+    private final String createStatement = """
             CREATE TABLE IF NOT EXISTS  auth (
               `authToken` varchar(256) NOT NULL,
               `username` varchar(256) NOT NULL,
               PRIMARY KEY (`authToken`),
               INDEX(username)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
-            """};
+            """;
 
     public DatabaseAuthDAO() throws DataAccessException {
         configureDatabase();
@@ -24,15 +27,7 @@ public class DatabaseAuthDAO implements AuthDAO {
 
     private void configureDatabase() throws DataAccessException {
         DatabaseManager.createDatabase();
-        try (Connection connection = DatabaseManager.getConnection()) {
-            for (String statement : createStatements) {
-                try (var preparedStatement = connection.prepareStatement(statement)) {
-                    preparedStatement.executeUpdate();
-                }
-            }
-        } catch (SQLException e) {
-            throw new DataAccessException("Failed to connect to Database.", e);
-        }
+        executeUpdate(createStatement);
     }
 
     @Override
@@ -47,7 +42,6 @@ public class DatabaseAuthDAO implements AuthDAO {
                                 resultSet.getString("username"));
                     }
                 }
-
             }
         } catch (DataAccessException | SQLException e) {
             throw new DataAccessException("Database Error: ", e);
@@ -58,15 +52,7 @@ public class DatabaseAuthDAO implements AuthDAO {
     @Override
     public void insertAuth(AuthData authData) throws DataAccessException {
         var statement = "INSERT INTO auth (authToken, username) VALUES (?, ?)";
-        try (Connection connection = DatabaseManager.getConnection()) {
-            try (var preparedStatement = connection.prepareStatement(statement)) {
-                preparedStatement.setString(1, authData.authToken());
-                preparedStatement.setString(2, authData.username());
-                preparedStatement.execute();
-            }
-        } catch (DataAccessException | SQLException e) {
-            throw new DataAccessException("Database Error: ", e);
-        }
+        executeUpdate(statement, authData.authToken(), authData.username());
     }
 
     @Override
@@ -75,26 +61,13 @@ public class DatabaseAuthDAO implements AuthDAO {
             throw new DataAccessException("Auth Token is bad!");
         }
         var statement = "DELETE FROM auth WHERE authToken=?";
-        try (Connection connection = DatabaseManager.getConnection()) {
-            try (var preparedStatement = connection.prepareStatement(statement)) {
-                preparedStatement.setString(1, authToken);
-                preparedStatement.execute();
-            }
-        } catch (DataAccessException | SQLException e) {
-            throw new DataAccessException("Database Error: ", e);
-        }
+        executeUpdate(statement, authToken);
     }
 
     @Override
     public void clear() throws DataAccessException {
         var statement = "TRUNCATE auth";
-        try (Connection connection = DatabaseManager.getConnection()) {
-            try (var preparedStatement = connection.prepareStatement(statement)) {
-                preparedStatement.execute();
-            }
-        } catch (DataAccessException | SQLException e) {
-            throw new DataAccessException("Database Error: ", e);
-        }
+        executeUpdate(statement);
     }
 
     @Override
@@ -105,4 +78,31 @@ public class DatabaseAuthDAO implements AuthDAO {
             return false;
         }
     }
+
+    private int executeUpdate(String statement, Object... params) throws DataAccessException {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (var preparedStatement = conn.prepareStatement(statement, RETURN_GENERATED_KEYS)) {
+                for (int i = 0; i < params.length; i++) {
+                    Object param = params[i];
+                    switch (param) {
+                        case String p -> preparedStatement.setString(i + 1, p);
+                        case Integer p -> preparedStatement.setInt(i + 1, p);
+                        case null -> preparedStatement.setNull(i + 1, NULL);
+                        default -> throw new IllegalStateException("Unexpected value: " + param);
+                    }
+                }
+                preparedStatement.executeUpdate();
+
+                ResultSet rs = preparedStatement.getGeneratedKeys();
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+
+                return 0;
+            }
+        } catch (SQLException e) {
+            throw new DataAccessException("Database Error: ", e);
+        }
+    }
+
 }
