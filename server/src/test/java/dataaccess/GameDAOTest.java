@@ -69,7 +69,7 @@ class GameDAOTest {
     @MethodSource("provideClasses")
     void updateGame(Class<? extends GameDAO> gameDAOClass) throws Exception {
         var gameDAO = gameDAOClass.getDeclaredConstructor().newInstance();
-        var gameData = new GameData(0, null, null, null, null);
+        var gameData = new GameData(0, null, null, "null", null);
         var gameID = gameDAO.insertGame(gameData);
         var gameData2 = new GameData(gameID, "white", "black", "game1", null);
         gameDAO.updateGame(gameData2);
