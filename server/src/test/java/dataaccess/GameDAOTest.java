@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class GameDAOTest {
 
     private static List<Class<? extends GameDAO>> provideClasses() {
-        return List.of(MemoryGameDAO.class);
+        return List.of(MemoryGameDAO.class, DatabaseGameDAO.class);
     }
 
     @ParameterizedTest
