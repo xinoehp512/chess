@@ -12,21 +12,20 @@ import static java.sql.Types.NULL;
 
 public class DatabaseAuthDAO implements AuthDAO {
 
-    private final String createStatement = """
-            CREATE TABLE IF NOT EXISTS  auth (
-              `authToken` varchar(256) NOT NULL,
-              `username` varchar(256) NOT NULL,
-              PRIMARY KEY (`authToken`),
-              INDEX(username)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
-            """;
-
     public DatabaseAuthDAO() throws DataAccessException {
         configureDatabase();
     }
 
     private void configureDatabase() throws DataAccessException {
         DatabaseManager.createDatabase();
+        String createStatement = """
+                CREATE TABLE IF NOT EXISTS  auth (
+                  `authToken` varchar(256) NOT NULL,
+                  `username` varchar(256) NOT NULL,
+                  PRIMARY KEY (`authToken`),
+                  INDEX(username)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+                """;
         executeUpdate(createStatement);
     }
 
@@ -79,7 +78,7 @@ public class DatabaseAuthDAO implements AuthDAO {
         }
     }
 
-    private int executeUpdate(String statement, Object... params) throws DataAccessException {
+    private void executeUpdate(String statement, Object... params) throws DataAccessException {
         try (Connection conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement(statement, RETURN_GENERATED_KEYS)) {
                 for (int i = 0; i < params.length; i++) {
@@ -95,10 +94,9 @@ public class DatabaseAuthDAO implements AuthDAO {
 
                 ResultSet rs = preparedStatement.getGeneratedKeys();
                 if (rs.next()) {
-                    return rs.getInt(1);
+                    rs.getInt(1);
                 }
 
-                return 0;
             }
         } catch (SQLException e) {
             throw new DataAccessException("Database Error: ", e);

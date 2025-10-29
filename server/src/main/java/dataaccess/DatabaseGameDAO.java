@@ -15,23 +15,22 @@ import static java.sql.Types.NULL;
 
 public class DatabaseGameDAO implements GameDAO {
 
-    private final String createStatement = """
-            CREATE TABLE IF NOT EXISTS  game (
-              `gameID` int NOT NULL AUTO_INCREMENT,
-              `whiteUsername` varchar(256) DEFAULT NULL,
-              `blackUsername` varchar(256) DEFAULT NULL,
-              `gameName` varchar(256) NOT NULL,
-              `game` longtext DEFAULT NULL,
-              PRIMARY KEY (`gameID`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
-            """;
-
     public DatabaseGameDAO() throws DataAccessException {
         configureDatabase();
     }
 
     private void configureDatabase() throws DataAccessException {
         DatabaseManager.createDatabase();
+        String createStatement = """
+                CREATE TABLE IF NOT EXISTS  game (
+                  `gameID` int NOT NULL AUTO_INCREMENT,
+                  `whiteUsername` varchar(256) DEFAULT NULL,
+                  `blackUsername` varchar(256) DEFAULT NULL,
+                  `gameName` varchar(256) NOT NULL,
+                  `game` longtext DEFAULT NULL,
+                  PRIMARY KEY (`gameID`)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+                """;
         executeUpdate(createStatement);
     }
 
