@@ -71,12 +71,17 @@ public class DatabaseGameDAO implements GameDAO {
 
     @Override
     public void deleteGame(int gameID) throws DataAccessException {
-
+        if (getGame(gameID) == null) {
+            throw new DataAccessException("Auth Token is bad!");
+        }
+        var statement = "DELETE FROM game WHERE gameID=?";
+        executeUpdate(statement, gameID);
     }
 
     @Override
     public void clear() throws DataAccessException {
-
+        var statement = "TRUNCATE game";
+        executeUpdate(statement);
     }
 
     @Override
