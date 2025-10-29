@@ -27,9 +27,12 @@ public class UserService {
         registerRequest.assertGood();
         UserData userData = this.makeUser(registerRequest);
         try {
+            if (userDAO.getUser(registerRequest.username()) != null) {
+                throw new ResponseException("Error: username already taken", 403);
+            }
             userDAO.insertUser(userData);
         } catch (DataAccessException e) {
-            throw new ResponseException("Error: username already taken", 403);
+            throw new ResponseException("Error: database", 500);
         }
         return this.makeAuth(userData);
     }
@@ -54,9 +57,12 @@ public class UserService {
 
     public void logout(LogoutRequest logoutRequest) throws ResponseException {
         try {
+            if (authDAO.getAuth(logoutRequest.authToken()) == null) {
+                throw new ResponseException("Error: unauthorized", 401);
+            }
             authDAO.deleteAuth(logoutRequest.authToken());
         } catch (DataAccessException e) {
-            throw new ResponseException("Error: unauthorized", 401);
+            throw new ResponseException("Error: database", 500);
         }
     }
 
