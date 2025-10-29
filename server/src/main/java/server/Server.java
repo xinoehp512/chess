@@ -2,9 +2,7 @@ package server;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
-import dataaccess.MemoryAuthDAO;
-import dataaccess.MemoryGameDAO;
-import dataaccess.MemoryUserDAO;
+import dataaccess.*;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import models.AuthData;
@@ -27,9 +25,17 @@ public class Server {
     private final Gson serializer = new Gson();
 
     public Server() {
-        var authDAO = new MemoryAuthDAO();
-        var userDAO = new MemoryUserDAO();
-        var gameDAO = new MemoryGameDAO();
+        AuthDAO authDAO;
+        UserDAO userDAO;
+        GameDAO gameDAO;
+        try {
+            authDAO = new DatabaseAuthDAO();
+            userDAO = new DatabaseUserDAO();
+            gameDAO = new DatabaseGameDAO();
+        } catch (DataAccessException e) {
+            throw new RuntimeException(e);
+        }
+
         gameService = new GameService(gameDAO, authDAO);
         userService = new UserService(userDAO, authDAO);
         adminService = new AdminService(gameDAO, authDAO, userDAO);
