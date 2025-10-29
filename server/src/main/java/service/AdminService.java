@@ -17,13 +17,9 @@ public class AdminService {
         this.userDAO = userDAO;
     }
 
-    public void clear() throws ResponseException {
-        try {
-            userDAO.clear();
-            authDAO.clear();
-            gameDAO.clear();
-        } catch (DataAccessException e) {
-            throw new ResponseException("Database Error", 500);
-        }
+    public void clear() throws ResponseException, DataAccessException {
+        userDAO.clear();
+        authDAO.clear();
+        gameDAO.clear();
     }
 }

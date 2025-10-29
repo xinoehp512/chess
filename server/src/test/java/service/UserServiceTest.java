@@ -25,7 +25,7 @@ class UserServiceTest {
     }
 
     @Test
-    void registerNewUser() throws ResponseException {
+    void registerNewUser() throws Exception {
         String username = "xinoehp512";
         var auth = userService.register(new RegisterRequest(username, "$ecureP4ssw0rd", "xinoehp512@gmail.com"));
         assertNotNull(auth.authToken());
@@ -33,14 +33,14 @@ class UserServiceTest {
     }
 
     @Test
-    void registerDuplicateUsername() throws ResponseException {
+    void registerDuplicateUsername() throws Exception {
         String username = "Bob";
         userService.register(new RegisterRequest(username, "password", "bob@gmail.com"));
         assertThrows(ResponseException.class, () -> userService.register(new RegisterRequest(username, "12345", "bob@yahoo.com")));
     }
 
     @Test
-    void login() throws ResponseException {
+    void login() throws Exception {
         String username = "xinoehp512";
         String password = "$ecureP4ssw0rd";
         String email = "xinoehp512@gmail.com";
@@ -51,7 +51,7 @@ class UserServiceTest {
     }
 
     @Test
-    void loginWrongPassword() throws ResponseException {
+    void loginWrongPassword() throws Exception {
         String username = "xinoehp512";
         String password = "$ecureP4ssw0rd";
         String email = "xinoehp512@gmail.com";
@@ -60,7 +60,7 @@ class UserServiceTest {
     }
 
     @Test
-    void loginWrongUsername() throws ResponseException {
+    void loginWrongUsername() throws Exception {
         String username = "xinoehp512";
         String password = "$ecureP4ssw0rd";
         String email = "xinoehp512@gmail.com";
@@ -69,7 +69,7 @@ class UserServiceTest {
     }
 
     @Test
-    void loginTwice() throws ResponseException {
+    void loginTwice() throws Exception {
         String username = "xinoehp512";
         String password = "$ecureP4ssw0rd";
         String email = "xinoehp512@gmail.com";
@@ -82,7 +82,7 @@ class UserServiceTest {
     }
 
     @Test
-    void logout() throws ResponseException {
+    void logout() throws Exception {
         String username = "xinoehp512";
         String password = "$ecureP4ssw0rd";
         String email = "xinoehp512@gmail.com";
@@ -93,7 +93,7 @@ class UserServiceTest {
     }
 
     @Test
-    void logoutTwice() throws ResponseException {
+    void logoutTwice() throws Exception {
         String username = "xinoehp512";
         String password = "$ecureP4ssw0rd";
         String email = "xinoehp512@gmail.com";

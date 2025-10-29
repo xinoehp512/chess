@@ -24,52 +24,37 @@ public class GameService {
         this.authDAO = authDAO;
     }
 
-    public CreateGameResponse createGame(CreateGameRequest createGameRequest, String authToken) throws ResponseException {
+    public CreateGameResponse createGame(CreateGameRequest createGameRequest, String authToken) throws ResponseException, DataAccessException {
         createGameRequest.assertGood();
         verifyAuth(authToken);
         GameData gameData = new GameData(0, null, null, createGameRequest.gameName(), null);
         int gameID;
-        try {
-            gameID = gameDAO.insertGame(gameData);
-        } catch (DataAccessException e) {
-            throw new ResponseException("Error: database", 500);
-        }
+        gameID = gameDAO.insertGame(gameData);
         return new CreateGameResponse(gameID);
     }
 
-    private AuthData verifyAuth(String authToken) throws ResponseException {
+    private AuthData verifyAuth(String authToken) throws ResponseException, DataAccessException {
         AuthData auth;
-        try {
-            auth = authDAO.getAuth(authToken);
-        } catch (DataAccessException e) {
-            throw new ResponseException("Error: database", 500);
-        }
+        auth = authDAO.getAuth(authToken);
         if (auth == null) {
             throw new ResponseException("Error: unauthorized", 401);
         }
         return auth;
     }
 
-    public ListGamesResponse listGames(String authToken) throws ResponseException {
+    public ListGamesResponse listGames(String authToken) throws ResponseException,
+            DataAccessException {
         verifyAuth(authToken);
         List<GameData> games;
-        try {
-            games = gameDAO.getAll();
-        } catch (DataAccessException e) {
-            throw new ResponseException("Error: database", 500);
-        }
+        games = gameDAO.getAll();
         return new ListGamesResponse(games);
     }
 
-    public void joinGame(JoinGameRequest joinGameRequest, String authToken) throws ResponseException {
+    public void joinGame(JoinGameRequest joinGameRequest, String authToken) throws ResponseException, DataAccessException {
         joinGameRequest.assertGood();
         var auth = verifyAuth(authToken);
         GameData game;
-        try {
-            game = gameDAO.getGame(joinGameRequest.gameID());
-        } catch (DataAccessException e) {
-            throw new ResponseException("Error: database", 500);
-        }
+        game = gameDAO.getGame(joinGameRequest.gameID());
         if (game == null) {
             throw new ResponseException("Error: bad request", 400);
         }

@@ -23,28 +23,21 @@ public class UserService {
         this.authDAO = authDAO;
     }
 
-    public AuthData register(RegisterRequest registerRequest) throws ResponseException {
+    public AuthData register(RegisterRequest registerRequest) throws ResponseException,
+            DataAccessException {
         registerRequest.assertGood();
         UserData userData = this.makeUser(registerRequest);
-        try {
-            if (userDAO.getUser(registerRequest.username()) != null) {
-                throw new ResponseException("Error: username already taken", 403);
-            }
-            userDAO.insertUser(userData);
-        } catch (DataAccessException e) {
-            throw new ResponseException("Error: database", 500);
+        if (userDAO.getUser(registerRequest.username()) != null) {
+            throw new ResponseException("Error: username already taken", 403);
         }
+        userDAO.insertUser(userData);
         return this.makeAuth(userData);
     }
 
-    public AuthData login(LoginRequest loginRequest) throws ResponseException {
+    public AuthData login(LoginRequest loginRequest) throws ResponseException, DataAccessException {
         loginRequest.assertGood();
         UserData userData;
-        try {
-            userData = userDAO.getUser(loginRequest.username());
-        } catch (DataAccessException e) {
-            throw new ResponseException("Error: database", 500);
-        }
+        userData = userDAO.getUser(loginRequest.username());
         if (userData == null || !verifyPassword(userData.password(), loginRequest.password())) {
             throw new ResponseException("Error: unauthorized", 401);
         }
@@ -55,24 +48,16 @@ public class UserService {
         return BCrypt.checkpw(testPassword, hashedPassword);
     }
 
-    public void logout(LogoutRequest logoutRequest) throws ResponseException {
-        try {
-            if (authDAO.getAuth(logoutRequest.authToken()) == null) {
-                throw new ResponseException("Error: unauthorized", 401);
-            }
-            authDAO.deleteAuth(logoutRequest.authToken());
-        } catch (DataAccessException e) {
-            throw new ResponseException("Error: database", 500);
+    public void logout(LogoutRequest logoutRequest) throws ResponseException, DataAccessException {
+        if (authDAO.getAuth(logoutRequest.authToken()) == null) {
+            throw new ResponseException("Error: unauthorized", 401);
         }
+        authDAO.deleteAuth(logoutRequest.authToken());
     }
 
-    private AuthData makeAuth(UserData userData) throws ResponseException {
+    private AuthData makeAuth(UserData userData) throws DataAccessException {
         AuthData authData = new AuthData(generateAuthToken(), userData.username());
-        try {
-            authDAO.insertAuth(authData);
-        } catch (DataAccessException e) {
-            throw new ResponseException("Error: database", 500);
-        }
+        authDAO.insertAuth(authData);
         return authData;
     }
 

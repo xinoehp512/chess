@@ -49,17 +49,18 @@ public class Server {
         server.get("game", this::listGames);
         server.post("game", this::createGame);
         server.put("game", this::joinGame);
+        server.exception(DataAccessException.class, this::databaseExceptionHandler);
         server.exception(ResponseException.class, this::exceptionHandler);
 
 
     }
 
-    private void clear(@NotNull Context ctx) throws ResponseException {
+    private void clear(@NotNull Context ctx) throws Exception {
         adminService.clear();
         ctx.result("{}");
     }
 
-    private void register(@NotNull Context ctx) throws ResponseException {
+    private void register(@NotNull Context ctx) throws Exception {
 
         var req = serializer.fromJson(ctx.body(), RegisterRequest.class);
         AuthData authData = userService.register(req);
@@ -68,7 +69,7 @@ public class Server {
         ctx.result(serializer.toJson(res));
     }
 
-    private void login(@NotNull Context ctx) throws ResponseException {
+    private void login(@NotNull Context ctx) throws Exception {
         var req = serializer.fromJson(ctx.body(), Map.class);
         String username = (String) req.get("username");
         String password = (String) req.get("password");
@@ -78,26 +79,26 @@ public class Server {
         ctx.result(serializer.toJson(res));
     }
 
-    private void logout(@NotNull Context ctx) throws ResponseException {
+    private void logout(@NotNull Context ctx) throws Exception {
         String authToken = ctx.header("authorization");
         userService.logout(new LogoutRequest(authToken));
         ctx.result("{}");
     }
 
-    private void listGames(@NotNull Context ctx) throws ResponseException {
+    private void listGames(@NotNull Context ctx) throws Exception {
         String authToken = ctx.header("authorization");
         ListGamesResponse res = gameService.listGames(authToken);
         ctx.result(serializer.toJson(res));
     }
 
-    private void createGame(@NotNull Context ctx) throws ResponseException {
+    private void createGame(@NotNull Context ctx) throws Exception {
         var req = serializer.fromJson(ctx.body(), CreateGameRequest.class);
         String authToken = ctx.header("authorization");
         CreateGameResponse res = gameService.createGame(req, authToken);
         ctx.result(serializer.toJson(res));
     }
 
-    private void joinGame(@NotNull Context ctx) throws ResponseException {
+    private void joinGame(@NotNull Context ctx) throws Exception {
         try {
             String authToken = ctx.header("authorization");
             JoinGameRequest req = serializer.fromJson(ctx.body(), JoinGameRequest.class);
@@ -106,6 +107,11 @@ public class Server {
         } catch (JsonSyntaxException e) {
             throw new ResponseException("Error: bad request", 400);
         }
+    }
+
+    private void databaseExceptionHandler(@NotNull DataAccessException e, @NotNull Context ctx) {
+        ctx.status(500);
+        ctx.result(new ResponseException("Error: database", 500).toJson());
     }
 
     private void exceptionHandler(@NotNull ResponseException e, @NotNull Context ctx) {
