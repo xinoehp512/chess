@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class UserDAOTest {
     private static List<Class<? extends UserDAO>> provideClasses() {
-        return List.of(MemoryUserDAO.class);
+        return List.of(MemoryUserDAO.class, DatabaseUserDAO.class);
     }
 
     @ParameterizedTest
