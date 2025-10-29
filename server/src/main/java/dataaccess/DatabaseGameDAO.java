@@ -7,6 +7,7 @@ import models.GameData;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import static java.sql.Statement.RETURN_GENERATED_KEYS;
@@ -43,10 +44,7 @@ public class DatabaseGameDAO implements GameDAO {
                 preparedStatement.setInt(1, gameID);
                 try (ResultSet resultSet = preparedStatement.executeQuery()) {
                     if (resultSet.next()) {
-                        return new GameData(resultSet.getInt("gameID"), resultSet.getString(
-                                "whiteUsername"), resultSet.getString("blackUsername"),
-                                resultSet.getString("gameName"), readGame(resultSet.getString(
-                                        "game")));
+                        return parseGameData(resultSet);
                     }
                 }
             }
@@ -54,6 +52,12 @@ public class DatabaseGameDAO implements GameDAO {
             throw new DataAccessException("Database Error: ", e);
         }
         return null;
+    }
+
+    private GameData parseGameData(ResultSet resultSet) throws SQLException {
+        return new GameData(resultSet.getInt("gameID"), resultSet.getString("whiteUsername"),
+                resultSet.getString("blackUsername"), resultSet.getString("gameName"),
+                readGame(resultSet.getString("game")));
     }
 
     private ChessGame readGame(String game) {
@@ -91,7 +95,20 @@ public class DatabaseGameDAO implements GameDAO {
 
     @Override
     public List<GameData> getAll() throws DataAccessException {
-        return List.of();
+        var statement = "SELECT gameID, whiteUsername, blackUsername, gameName, game FROM game";
+        List<GameData> gameList = new ArrayList<>();
+        try (Connection connection = DatabaseManager.getConnection()) {
+            try (var preparedStatement = connection.prepareStatement(statement)) {
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    while (resultSet.next()) {
+                        gameList.add(parseGameData(resultSet));
+                    }
+                }
+            }
+        } catch (DataAccessException | SQLException e) {
+            throw new DataAccessException("Database Error: ", e);
+        }
+        return gameList;
     }
 
     private int executeUpdate(String statement, Object... params) throws DataAccessException {

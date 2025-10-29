@@ -19,6 +19,7 @@ class GameDAOTest {
     @MethodSource("provideClasses")
     void getNullGame(Class<? extends GameDAO> gameDAOClass) throws Exception {
         var gameDAO = gameDAOClass.getDeclaredConstructor().newInstance();
+        gameDAO.clear();
         assertNull(gameDAO.getGame(0));
     }
 
@@ -26,6 +27,7 @@ class GameDAOTest {
     @MethodSource("provideClasses")
     void insertGame(Class<? extends GameDAO> gameDAOClass) throws Exception {
         var gameDAO = gameDAOClass.getDeclaredConstructor().newInstance();
+        gameDAO.clear();
         var gameData = new GameData(0, "white", "black", "game1", null);
         var gameID = gameDAO.insertGame(gameData);
         var storedGameData = gameDAO.getGame(gameID);
@@ -36,6 +38,7 @@ class GameDAOTest {
     @MethodSource("provideClasses")
     void deleteGame(Class<? extends GameDAO> gameDAOClass) throws Exception {
         var gameDAO = gameDAOClass.getDeclaredConstructor().newInstance();
+        gameDAO.clear();
         var gameData = new GameData(0, "white", "black", "game1", null);
         var gameID = gameDAO.insertGame(gameData);
         gameDAO.deleteGame(gameID);
@@ -46,6 +49,7 @@ class GameDAOTest {
     @MethodSource("provideClasses")
     void deleteNoGame(Class<? extends GameDAO> gameDAOClass) throws Exception {
         var gameDAO = gameDAOClass.getDeclaredConstructor().newInstance();
+        gameDAO.clear();
         assertThrows(DataAccessException.class, () -> gameDAO.deleteGame(0));
     }
 
@@ -53,6 +57,7 @@ class GameDAOTest {
     @MethodSource("provideClasses")
     void clear(Class<? extends GameDAO> gameDAOClass) throws Exception {
         var gameDAO = gameDAOClass.getDeclaredConstructor().newInstance();
+        gameDAO.clear();
 
         int[] gameIDs = new int[3];
         for (var i = 0; i < 3; i++) {
@@ -69,6 +74,7 @@ class GameDAOTest {
     @MethodSource("provideClasses")
     void updateGame(Class<? extends GameDAO> gameDAOClass) throws Exception {
         var gameDAO = gameDAOClass.getDeclaredConstructor().newInstance();
+        gameDAO.clear();
         var gameData = new GameData(0, null, null, "null", null);
         var gameID = gameDAO.insertGame(gameData);
         var gameData2 = new GameData(gameID, "white", "black", "game1", null);
@@ -80,6 +86,7 @@ class GameDAOTest {
     @MethodSource("provideClasses")
     void updateNoGame(Class<? extends GameDAO> gameDAOClass) throws Exception {
         var gameDAO = gameDAOClass.getDeclaredConstructor().newInstance();
+        gameDAO.clear();
         var gameData = new GameData(0, "white", "black", "game1", null);
         assertThrows(DataAccessException.class, () -> gameDAO.updateGame(gameData));
     }
@@ -88,6 +95,7 @@ class GameDAOTest {
     @MethodSource("provideClasses")
     void getAll(Class<? extends GameDAO> gameDAOClass) throws Exception {
         var gameDAO = gameDAOClass.getDeclaredConstructor().newInstance();
+        gameDAO.clear();
 
         String[] whiteUsernames = {"white1", "white2", "white3"};
         String[] blackUsernames = {"black1", "black2", "black3"};
