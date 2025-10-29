@@ -70,6 +70,9 @@ public class DatabaseAuthDAO implements AuthDAO {
 
     @Override
     public void deleteAuth(String authToken) throws DataAccessException {
+        if (getAuth(authToken) == null) {
+            throw new DataAccessException("Auth Token is bad!");
+        }
         var statement = "DELETE FROM auth WHERE authToken=?";
         try (Connection connection = DatabaseManager.getConnection()) {
             try (var preparedStatement = connection.prepareStatement(statement)) {

@@ -33,7 +33,7 @@ public class GameService {
     }
 
     private AuthData verifyAuth(String authToken) throws ResponseException {
-        AuthData auth = null;
+        AuthData auth;
         try {
             auth = authDAO.getAuth(authToken);
         } catch (DataAccessException e) {
