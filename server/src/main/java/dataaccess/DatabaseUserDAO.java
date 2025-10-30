@@ -1,14 +1,12 @@
 package dataaccess;
 
-import com.google.gson.Gson;
 import models.UserData;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import static java.sql.Statement.RETURN_GENERATED_KEYS;
-import static java.sql.Types.NULL;
+import static dataaccess.ExecuteDatabaseInstruction.executeUpdate;
 
 public class DatabaseUserDAO implements UserDAO {
 
@@ -62,24 +60,5 @@ public class DatabaseUserDAO implements UserDAO {
     public void clear() throws DataAccessException {
         var statement = "TRUNCATE user";
         executeUpdate(statement);
-    }
-
-    private void executeUpdate(String statement, Object... params) throws DataAccessException {
-        try (Connection conn = DatabaseManager.getConnection()) {
-            try (var preparedStatement = conn.prepareStatement(statement, RETURN_GENERATED_KEYS)) {
-                for (int i = 0; i < params.length; i++) {
-                    Object param = params[i];
-                    switch (param) {
-                        case String p -> preparedStatement.setString(i + 1, p);
-                        case Integer p -> preparedStatement.setInt(i + 1, p);
-                        case Object p -> preparedStatement.setString(i + 1, new Gson().toJson(p));
-                        case null -> preparedStatement.setNull(i + 1, NULL);
-                    }
-                }
-                preparedStatement.executeUpdate();
-            }
-        } catch (SQLException e) {
-            throw new DataAccessException("Database Error: ", e);
-        }
     }
 }

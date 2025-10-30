@@ -7,8 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Objects;
 
-import static java.sql.Statement.RETURN_GENERATED_KEYS;
-import static java.sql.Types.NULL;
+import static dataaccess.ExecuteDatabaseInstruction.executeUpdate;
 
 public class DatabaseAuthDAO implements AuthDAO {
 
@@ -77,24 +76,4 @@ public class DatabaseAuthDAO implements AuthDAO {
             return false;
         }
     }
-
-    private void executeUpdate(String statement, Object... params) throws DataAccessException {
-        try (Connection conn = DatabaseManager.getConnection()) {
-            try (var preparedStatement = conn.prepareStatement(statement, RETURN_GENERATED_KEYS)) {
-                for (int i = 0; i < params.length; i++) {
-                    Object param = params[i];
-                    switch (param) {
-                        case String p -> preparedStatement.setString(i + 1, p);
-                        case Integer p -> preparedStatement.setInt(i + 1, p);
-                        case null -> preparedStatement.setNull(i + 1, NULL);
-                        default -> throw new IllegalStateException("Unexpected value: " + param);
-                    }
-                }
-                preparedStatement.executeUpdate();
-            }
-        } catch (SQLException e) {
-            throw new DataAccessException("Database Error: ", e);
-        }
-    }
-
 }
