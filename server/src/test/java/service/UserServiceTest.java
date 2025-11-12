@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 import requests.LoginRequest;
 import requests.LogoutRequest;
 import requests.RegisterRequest;
-import requests.ResponseException;
+import exception.ResponseException;
 
 import static org.junit.jupiter.api.Assertions.*;
 

@@ -9,7 +9,7 @@ import org.mindrot.jbcrypt.BCrypt;
 import requests.LoginRequest;
 import requests.LogoutRequest;
 import requests.RegisterRequest;
-import requests.ResponseException;
+import exception.ResponseException;
 
 import java.util.UUID;
 

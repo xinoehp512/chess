@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import requests.CreateGameRequest;
 import requests.LoginRequest;
 import requests.RegisterRequest;
-import requests.ResponseException;
+import exception.ResponseException;
 
 import static org.junit.jupiter.api.Assertions.*;
 

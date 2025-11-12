@@ -1,5 +1,7 @@
 package requests;
 
+import exception.ResponseException;
+
 public record LogoutRequest(String authToken) implements Request {
 
     @Override

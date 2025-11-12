@@ -1,5 +1,7 @@
 package requests;
 
+import exception.ResponseException;
+
 public record CreateGameRequest(String gameName) implements Request {
     @Override
     public void assertGood() throws ResponseException {

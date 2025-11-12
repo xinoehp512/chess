@@ -1,5 +1,7 @@
 package requests;
 
+import exception.ResponseException;
+
 public record RegisterRequest(String username, String password, String email) implements Request {
     @Override
     public void assertGood() throws ResponseException {

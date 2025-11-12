@@ -1,5 +1,7 @@
 package requests;
 
+import exception.ResponseException;
+
 public record JoinGameRequest(String playerColor, int gameID) implements Request {
     @Override
     public void assertGood() throws ResponseException {

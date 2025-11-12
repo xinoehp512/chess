@@ -9,7 +9,7 @@ import models.AuthData;
 import models.GameData;
 import requests.CreateGameRequest;
 import requests.JoinGameRequest;
-import requests.ResponseException;
+import exception.ResponseException;
 import response.CreateGameResponse;
 import response.ListGamesResponse;
 

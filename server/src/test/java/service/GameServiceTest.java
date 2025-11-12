@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 import requests.CreateGameRequest;
 import requests.JoinGameRequest;
 import requests.RegisterRequest;
-import requests.ResponseException;
+import exception.ResponseException;
 
 import java.util.List;
 
