@@ -75,7 +75,7 @@ public class Server {
 
     private void logout(@NotNull Context ctx) throws Exception {
         String authToken = ctx.header("authorization");
-        userService.logout(new LogoutRequest(authToken));
+        userService.logout(authToken);
         ctx.result("{}");
     }
 

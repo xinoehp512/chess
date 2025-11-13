@@ -2,7 +2,6 @@ package server;
 
 import com.google.gson.Gson;
 import exception.ResponseException;
-import models.AuthData;
 import models.GameData;
 import requests.*;
 import response.CreateGameResponse;
@@ -34,8 +33,8 @@ public class ServerFacade {
         return performRequest("POST", "/user", request, null, LoginResponse.class);
     }
 
-    public void logout(LogoutRequest request) throws ResponseException {
-        performRequest("DELETE", "/session", request, null, null);
+    public void logout(String authToken) throws ResponseException {
+        performRequest("DELETE", "/session", null, authToken, null);
     }
 
     public CreateGameResponse createGame(CreateGameRequest request, String authToken) throws ResponseException {
@@ -49,11 +48,6 @@ public class ServerFacade {
     public void joinGame(JoinGameRequest request, String authToken) throws ResponseException {
         performRequest("PUT", "/game", request, authToken, null);
     }
-
-    public boolean authIsValid(AuthData authData) throws ResponseException {
-        return false;
-    }
-
 
     public GameData getGame(int gameID, String authToken) throws ResponseException {
         List<GameData> gameDataList = listGames(authToken).games();

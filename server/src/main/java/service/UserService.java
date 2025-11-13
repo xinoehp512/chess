@@ -7,7 +7,6 @@ import models.AuthData;
 import models.UserData;
 import org.mindrot.jbcrypt.BCrypt;
 import requests.LoginRequest;
-import requests.LogoutRequest;
 import requests.RegisterRequest;
 import exception.ResponseException;
 import response.LoginResponse;
@@ -51,11 +50,11 @@ public class UserService {
         return BCrypt.checkpw(testPassword, hashedPassword);
     }
 
-    public void logout(LogoutRequest logoutRequest) throws ResponseException, DataAccessException {
-        if (authDAO.getAuth(logoutRequest.authToken()) == null) {
+    public void logout(String authToken) throws ResponseException, DataAccessException {
+        if (authDAO.getAuth(authToken) == null) {
             throw new ResponseException("Error: unauthorized", 401);
         }
-        authDAO.deleteAuth(logoutRequest.authToken());
+        authDAO.deleteAuth(authToken);
     }
 
     private AuthData makeAuth(UserData userData) throws DataAccessException {

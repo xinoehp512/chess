@@ -74,6 +74,16 @@ public class ServerFacadeTests {
         }
 
         @Test
+        void logout() throws Exception {
+            String username = "xinoehp512";
+            String password = "$ecureP4ssw0rd";
+            String email = "xinoehp512@gmail.com";
+            serverFacade.register(new RegisterRequest(username, password, email));
+            var auth = serverFacade.login(new LoginRequest(username, password));
+            assertDoesNotThrow(() -> serverFacade.logout(auth.authToken()));
+        }
+
+        @Test
         void loginWrongPassword() throws Exception {
             String username = "xinoehp512";
             String password = "$ecureP4ssw0rd";
@@ -101,20 +111,9 @@ public class ServerFacadeTests {
             serverFacade.register(new RegisterRequest(username, password, email));
             AuthData auth = serverFacade.login(new LoginRequest(username, password)).getAuthData();
             AuthData auth2 = serverFacade.login(new LoginRequest(username, password)).getAuthData();
-            assertTrue(serverFacade.authIsValid(auth));
-            assertTrue(serverFacade.authIsValid(auth2));
             assertNotEquals(auth.authToken(), auth2.authToken());
-        }
-
-        @Test
-        void logout() throws Exception {
-            String username = "xinoehp512";
-            String password = "$ecureP4ssw0rd";
-            String email = "xinoehp512@gmail.com";
-            serverFacade.register(new RegisterRequest(username, password, email));
-            AuthData auth = serverFacade.login(new LoginRequest(username, password)).getAuthData();
-            serverFacade.logout(new LogoutRequest(auth.authToken()));
-            assertFalse(serverFacade.authIsValid(auth));
+            assertDoesNotThrow(() -> serverFacade.logout(auth.authToken()));
+            assertDoesNotThrow(() -> serverFacade.logout(auth2.authToken()));
         }
 
         @Test
@@ -124,9 +123,8 @@ public class ServerFacadeTests {
             String email = "xinoehp512@gmail.com";
             serverFacade.register(new RegisterRequest(username, password, email));
             var auth = serverFacade.login(new LoginRequest(username, password));
-            serverFacade.logout(new LogoutRequest(auth.authToken()));
-            assertThrows(ResponseException.class,
-                    () -> serverFacade.logout(new LogoutRequest(auth.authToken())));
+            serverFacade.logout(auth.authToken());
+            assertThrows(ResponseException.class, () -> serverFacade.logout(auth.authToken()));
         }
     }
 
@@ -190,6 +188,11 @@ public class ServerFacadeTests {
             assertThrows(ResponseException.class,
                     () -> ServerFacadeTests.serverFacade.createGame(new CreateGameRequest(
                     "Game " + "1"), "bad"));
+        }
+
+        @Test
+        void getGameNoGame() throws Exception {
+            assertNull(serverFacade.getGame(0, authData.authToken()));
         }
 
         @Test

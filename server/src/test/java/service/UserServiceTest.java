@@ -7,7 +7,6 @@ import models.AuthData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import requests.LoginRequest;
-import requests.LogoutRequest;
 import requests.RegisterRequest;
 import exception.ResponseException;
 
@@ -94,7 +93,7 @@ class UserServiceTest {
         String email = "xinoehp512@gmail.com";
         userService.register(new RegisterRequest(username, password, email));
         AuthData auth = userService.login(new LoginRequest(username, password)).getAuthData();
-        userService.logout(new LogoutRequest(auth.authToken()));
+        userService.logout(auth.authToken());
         assertFalse(authDAO.authIsValid(auth));
     }
 
@@ -105,8 +104,8 @@ class UserServiceTest {
         String email = "xinoehp512@gmail.com";
         userService.register(new RegisterRequest(username, password, email));
         var auth = userService.login(new LoginRequest(username, password));
-        userService.logout(new LogoutRequest(auth.authToken()));
+        userService.logout(auth.authToken());
         assertThrows(ResponseException.class,
-                () -> userService.logout(new LogoutRequest(auth.authToken())));
+                () -> userService.logout(auth.authToken()));
     }
 }
