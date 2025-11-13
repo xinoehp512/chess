@@ -4,5 +4,5 @@ import exception.ResponseException;
 
 public interface Request {
 
-    public void assertGood() throws ResponseException;
+    void assertGood() throws ResponseException;
 }

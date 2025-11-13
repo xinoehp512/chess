@@ -1,6 +1,7 @@
 package ui;
 
 import exception.ResponseException;
+import server.ServerFacade;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -10,8 +11,10 @@ import static ui.EscapeSequences.SET_TEXT_COLOR_BLUE;
 
 public class ChessConsole {
     private boolean isAuthenticated = false;
+    private final ServerFacade server;
 
     public ChessConsole(String serverURL) {
+        server = new ServerFacade(serverURL);
     }
 
     public void run() {
