@@ -151,7 +151,7 @@ public class ServerFacadeTests {
                     ServerFacadeTests.serverFacade.createGame(new CreateGameRequest(gameName),
                             authData.authToken());
             assertNotNull(response);
-            assertEquals(gameName, serverFacade.getGame(response.gameID()).gameName());
+            assertEquals(gameName, serverFacade.getGame(response.gameID(), authData.authToken()).gameName());
         }
 
         @Test
@@ -194,7 +194,7 @@ public class ServerFacadeTests {
             var gameID = response.gameID();
             ServerFacadeTests.serverFacade.joinGame(new JoinGameRequest("WHITE", gameID),
                     authData.authToken());
-            var game = serverFacade.getGame(gameID);
+            var game = serverFacade.getGame(gameID,authData.authToken());
             assertNull(game.blackUsername());
             assertEquals(authData.username(), game.whiteUsername());
         }
@@ -208,7 +208,7 @@ public class ServerFacadeTests {
             var gameID = response.gameID();
             ServerFacadeTests.serverFacade.joinGame(new JoinGameRequest("BLACK", gameID),
                     authData.authToken());
-            var game = serverFacade.getGame(gameID);
+            var game = serverFacade.getGame(gameID, authData.authToken());
             assertNull(game.whiteUsername());
             assertEquals(authData.username(), game.blackUsername());
         }
