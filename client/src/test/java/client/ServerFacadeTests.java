@@ -138,10 +138,16 @@ public class ServerFacadeTests {
 
         @BeforeEach
         void initGameTests() throws Exception {
+            try {
+                serverFacade.clear();
+            } catch (ResponseException e) {
+                System.out.println("Server Clear Failed!");
+            }
             authData = ServerFacadeTests.serverFacade.register(new RegisterRequest("xinoehp512",
                     "password", "e@e.com")).getAuthData();
             authDataOtherUser = ServerFacadeTests.serverFacade.register(new RegisterRequest(
                     "Brain", "zzzzz", "z@z.com")).getAuthData();
+
         }
 
         @Test
@@ -151,7 +157,8 @@ public class ServerFacadeTests {
                     ServerFacadeTests.serverFacade.createGame(new CreateGameRequest(gameName),
                             authData.authToken());
             assertNotNull(response);
-            assertEquals(gameName, serverFacade.getGame(response.gameID(), authData.authToken()).gameName());
+            assertEquals(gameName,
+                    serverFacade.getGame(response.gameID(), authData.authToken()).gameName());
         }
 
         @Test
@@ -194,7 +201,7 @@ public class ServerFacadeTests {
             var gameID = response.gameID();
             ServerFacadeTests.serverFacade.joinGame(new JoinGameRequest("WHITE", gameID),
                     authData.authToken());
-            var game = serverFacade.getGame(gameID,authData.authToken());
+            var game = serverFacade.getGame(gameID, authData.authToken());
             assertNull(game.blackUsername());
             assertEquals(authData.username(), game.whiteUsername());
         }
