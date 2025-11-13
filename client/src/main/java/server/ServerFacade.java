@@ -1,5 +1,8 @@
 package server;
 
+import requests.LoginRequest;
+import response.LoginResponse;
+
 import java.net.http.HttpClient;
 
 public class ServerFacade {
@@ -9,4 +12,10 @@ public class ServerFacade {
     public ServerFacade(String url) {
         serverUrl = url;
     }
+
+    public LoginResponse login(LoginRequest loginRequest) {
+        return null;
+    }
+
+
 }
