@@ -1,5 +1,6 @@
 package server;
 
+import models.AuthData;
 import requests.*;
 import response.CreateGameResponse;
 import response.ListGamesResponse;
@@ -37,6 +38,10 @@ public class ServerFacade {
 
     public void joinGame(JoinGameRequest joinGameRequest) {
 
+    }
+
+    public boolean authIsValid(AuthData authData) {
+        return false;
     }
 
 
