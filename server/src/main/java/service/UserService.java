@@ -10,6 +10,7 @@ import requests.LoginRequest;
 import requests.LogoutRequest;
 import requests.RegisterRequest;
 import exception.ResponseException;
+import response.LoginResponse;
 
 import java.util.UUID;
 
@@ -34,14 +35,16 @@ public class UserService {
         return this.makeAuth(userData);
     }
 
-    public AuthData login(LoginRequest loginRequest) throws ResponseException, DataAccessException {
+    public LoginResponse login(LoginRequest loginRequest) throws ResponseException,
+            DataAccessException {
         loginRequest.assertGood();
         UserData userData;
         userData = userDAO.getUser(loginRequest.username());
         if (userData == null || !verifyPassword(userData.password(), loginRequest.password())) {
             throw new ResponseException("Error: unauthorized", 401);
         }
-        return this.makeAuth(userData);
+        AuthData authData = this.makeAuth(userData);
+        return LoginResponse.fromAuth(authData);
     }
 
     private boolean verifyPassword(String hashedPassword, String testPassword) {

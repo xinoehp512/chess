@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import requests.*;
 import response.CreateGameResponse;
 import response.ListGamesResponse;
+import response.LoginResponse;
 import service.AdminService;
 import service.GameService;
 import service.UserService;
@@ -74,9 +75,10 @@ public class Server {
         var req = serializer.fromJson(ctx.body(), Map.class);
         String username = (String) req.get("username");
         String password = (String) req.get("password");
-        AuthData authData = userService.login(new LoginRequest(username, password));
+        LoginResponse loginResponse = userService.login(new LoginRequest(username, password));
 
-        var res = Map.of("username", authData.username(), "authToken", authData.authToken());
+        var res = Map.of("username", loginResponse.username(), "authToken",
+                loginResponse.authToken());
         ctx.result(serializer.toJson(res));
     }
 

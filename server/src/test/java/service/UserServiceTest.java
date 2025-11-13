@@ -3,6 +3,7 @@ package service;
 import dataaccess.AuthDAO;
 import dataaccess.MemoryAuthDAO;
 import dataaccess.MemoryUserDAO;
+import models.AuthData;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import requests.LoginRequest;
@@ -27,7 +28,8 @@ class UserServiceTest {
     @Test
     void registerNewUser() throws Exception {
         String username = "xinoehp512";
-        var auth = userService.register(new RegisterRequest(username, "$ecureP4ssw0rd", "xinoehp512@gmail.com"));
+        var auth = userService.register(new RegisterRequest(username, "$ecureP4ssw0rd",
+                "xinoehp512@gmail.com"));
         assertNotNull(auth.authToken());
         assertEquals(username, auth.username());
     }
@@ -36,7 +38,9 @@ class UserServiceTest {
     void registerDuplicateUsername() throws Exception {
         String username = "Bob";
         userService.register(new RegisterRequest(username, "password", "bob@gmail.com"));
-        assertThrows(ResponseException.class, () -> userService.register(new RegisterRequest(username, "12345", "bob@yahoo.com")));
+        assertThrows(ResponseException.class,
+                () -> userService.register(new RegisterRequest(username, "12345",
+                        "bob@yahoo.com")));
     }
 
     @Test
@@ -56,7 +60,8 @@ class UserServiceTest {
         String password = "$ecureP4ssw0rd";
         String email = "xinoehp512@gmail.com";
         userService.register(new RegisterRequest(username, password, email));
-        assertThrows(ResponseException.class, () -> userService.login(new LoginRequest(username, "hackerpassword")));
+        assertThrows(ResponseException.class, () -> userService.login(new LoginRequest(username,
+                "hackerpassword")));
     }
 
     @Test
@@ -65,7 +70,8 @@ class UserServiceTest {
         String password = "$ecureP4ssw0rd";
         String email = "xinoehp512@gmail.com";
         userService.register(new RegisterRequest(username, password, email));
-        assertThrows(ResponseException.class, () -> userService.login(new LoginRequest("xineohp512", password)));
+        assertThrows(ResponseException.class, () -> userService.login(new LoginRequest(
+                "xineohp512", password)));
     }
 
     @Test
@@ -74,8 +80,8 @@ class UserServiceTest {
         String password = "$ecureP4ssw0rd";
         String email = "xinoehp512@gmail.com";
         userService.register(new RegisterRequest(username, password, email));
-        var auth = userService.login(new LoginRequest(username, password));
-        var auth2 = userService.login(new LoginRequest(username, password));
+        AuthData auth = userService.login(new LoginRequest(username, password)).getAuthData();
+        AuthData auth2 = userService.login(new LoginRequest(username, password)).getAuthData();
         assertTrue(authDAO.authIsValid(auth));
         assertTrue(authDAO.authIsValid(auth2));
         assertNotEquals(auth.authToken(), auth2.authToken());
@@ -87,7 +93,7 @@ class UserServiceTest {
         String password = "$ecureP4ssw0rd";
         String email = "xinoehp512@gmail.com";
         userService.register(new RegisterRequest(username, password, email));
-        var auth = userService.login(new LoginRequest(username, password));
+        AuthData auth = userService.login(new LoginRequest(username, password)).getAuthData();
         userService.logout(new LogoutRequest(auth.authToken()));
         assertFalse(authDAO.authIsValid(auth));
     }
@@ -100,6 +106,7 @@ class UserServiceTest {
         userService.register(new RegisterRequest(username, password, email));
         var auth = userService.login(new LoginRequest(username, password));
         userService.logout(new LogoutRequest(auth.authToken()));
-        assertThrows(ResponseException.class, () -> userService.logout(new LogoutRequest(auth.authToken())));
+        assertThrows(ResponseException.class,
+                () -> userService.logout(new LogoutRequest(auth.authToken())));
     }
 }
