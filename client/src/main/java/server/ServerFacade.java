@@ -1,6 +1,7 @@
 package server;
 
 import models.AuthData;
+import models.GameData;
 import requests.*;
 import response.CreateGameResponse;
 import response.ListGamesResponse;
@@ -28,15 +29,15 @@ public class ServerFacade {
 
     }
 
-    public CreateGameResponse createGame(CreateGameRequest createGameRequest) {
+    public CreateGameResponse createGame(CreateGameRequest createGameRequest, String authToken) {
         return null;
     }
 
-    public ListGamesResponse listGames() {
+    public ListGamesResponse listGames(String authToken) {
         return null;
     }
 
-    public void joinGame(JoinGameRequest joinGameRequest) {
+    public void joinGame(JoinGameRequest joinGameRequest, String authToken) {
 
     }
 
@@ -45,4 +46,7 @@ public class ServerFacade {
     }
 
 
+    public GameData getGame(int gameID) {
+        return null;
+    }
 }
