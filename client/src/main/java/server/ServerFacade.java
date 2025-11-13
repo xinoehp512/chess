@@ -22,50 +22,50 @@ public class ServerFacade {
         serverUrl = url;
     }
 
-    public LoginResponse login(LoginRequest loginRequest) {
+    public LoginResponse login(LoginRequest loginRequest) throws ResponseException {
         return null;
     }
 
-    public LoginResponse register(RegisterRequest registerRequest) {
+    public LoginResponse register(RegisterRequest registerRequest) throws ResponseException {
+        return performRequest("POST", "/user", registerRequest, null,  LoginResponse.class);
+    }
+
+    public void logout(LogoutRequest logoutRequest) throws ResponseException {
+
+    }
+
+    public CreateGameResponse createGame(CreateGameRequest createGameRequest, String authToken) throws ResponseException {
         return null;
     }
 
-    public void logout(LogoutRequest logoutRequest) {
-
-    }
-
-    public CreateGameResponse createGame(CreateGameRequest createGameRequest, String authToken) {
+    public ListGamesResponse listGames(String authToken) throws ResponseException {
         return null;
     }
 
-    public ListGamesResponse listGames(String authToken) {
-        return null;
-    }
-
-    public void joinGame(JoinGameRequest joinGameRequest, String authToken) {
+    public void joinGame(JoinGameRequest joinGameRequest, String authToken) throws ResponseException {
 
     }
 
-    public boolean authIsValid(AuthData authData) {
+    public boolean authIsValid(AuthData authData) throws ResponseException {
         return false;
     }
 
 
-    public GameData getGame(int gameID) {
+    public GameData getGame(int gameID) throws ResponseException {
         return null;
     }
 
-
-    private HttpRequest buildRequest(String method, String path) {
-        return buildRequest(method, path, null, null);
+    public void clear() throws ResponseException {
+        performRequest("DELETE", "/db", null, null ,null);
     }
 
-    private HttpRequest buildRequest(String method, String path, Request body) {
-        return buildRequest(method, path, body, null);
-    }
 
-    private HttpRequest buildRequest(String method, String path, String authToken) {
-        return buildRequest(method, path, null, authToken);
+
+    private <T> T performRequest(String method, String path, Request body, String authToken,
+                                 Class<T> responseClass) throws ResponseException {
+        var request = buildRequest(method, path, body, authToken);
+        var response = sendRequest(request);
+        return handleResponse(response,responseClass);
     }
 
     private HttpRequest buildRequest(String method, String path, Request body, String authToken) {

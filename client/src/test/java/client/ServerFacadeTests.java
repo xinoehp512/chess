@@ -35,6 +35,15 @@ public class ServerFacadeTests {
 
     @Nested
     class ServerFacadeUserTests {
+        @BeforeEach
+        void init() {
+            try {
+                serverFacade.clear();
+            } catch (ResponseException e) {
+                System.out.println("Server Clear Failed!");
+            }
+        }
+
         @Test
         void registerNewUser() throws Exception {
             String username = "xinoehp512";
