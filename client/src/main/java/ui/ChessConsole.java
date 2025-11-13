@@ -1,6 +1,7 @@
 package ui;
 
 import exception.ResponseException;
+import requests.LoginRequest;
 import requests.RegisterRequest;
 import server.ServerFacade;
 
@@ -8,8 +9,7 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.Scanner;
 
-import static ui.EscapeSequences.RESET_TEXT_COLOR;
-import static ui.EscapeSequences.SET_TEXT_COLOR_BLUE;
+import static ui.EscapeSequences.*;
 
 public class ChessConsole {
     private boolean isAuthenticated = false;
@@ -78,7 +78,7 @@ public class ChessConsole {
         } catch (ResponseException ex) {
             return ex.getMessage();
         } catch (InputException e) {
-            return "Malformed command: " + e.getMessage();
+            return SET_TEXT_COLOR_RED + "Malformed command: " + e.getMessage() + RESET_TEXT_COLOR;
         }
     }
 
@@ -106,8 +106,15 @@ public class ChessConsole {
         return null;
     }
 
-    private String login(String[] params) throws ResponseException {
-        return null;
+    private String login(String[] params) throws ResponseException, InputException {
+        assertParamCount(params, 2);
+        assertAuthState(false);
+        String username = params[0];
+        String password = params[1];
+        var response = server.login(new LoginRequest(username, password));
+        authToken = response.authToken();
+        isAuthenticated = true;
+        return "Logged in as " + response.username();
     }
 
     private String register(String[] params) throws ResponseException, InputException {
