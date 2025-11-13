@@ -1,6 +1,7 @@
 package ui;
 
 import exception.ResponseException;
+import requests.CreateGameRequest;
 import requests.LoginRequest;
 import requests.RegisterRequest;
 import server.ServerFacade;
@@ -102,8 +103,12 @@ public class ChessConsole {
         return null;
     }
 
-    private String createGame(String[] params) throws ResponseException {
-        return null;
+    private String createGame(String[] params) throws ResponseException, InputException {
+        assertParamCount(params, 1);
+        assertAuthState(true);
+        String name = params[0];
+        var response = server.createGame(new CreateGameRequest(name), authToken);
+        return "Successfully created game named " + name;
     }
 
     private String login(String[] params) throws ResponseException, InputException {
@@ -146,7 +151,7 @@ public class ChessConsole {
     }
 
     private void printPrompt() {
-        System.out.printf(RESET_TEXT_COLOR + "\n[%s] >>> ", isAuthenticated ? "LOGGED IN" :
-                "LOGGED " + "OUT");
+        System.out.printf(
+                RESET_TEXT_COLOR + "\n[%s] >>> ", isAuthenticated ? "LOGGED IN" : "LOGGED OUT");
     }
 }
