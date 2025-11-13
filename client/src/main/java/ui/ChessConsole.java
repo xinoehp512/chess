@@ -1,16 +1,19 @@
 package ui;
 
 import exception.ResponseException;
+import requests.RegisterRequest;
 import server.ServerFacade;
 
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Scanner;
 
+import static ui.EscapeSequences.RESET_TEXT_COLOR;
 import static ui.EscapeSequences.SET_TEXT_COLOR_BLUE;
 
 public class ChessConsole {
     private boolean isAuthenticated = false;
+    private String authToken = null;
     private final ServerFacade server;
 
     public ChessConsole(String serverURL) {
@@ -38,20 +41,20 @@ public class ChessConsole {
     private String help() {
         if (isAuthenticated) {
             return """
-                    create <NAME> - a game
-                    list - games
-                    join <ID> [WHITE|BLACK] - a game
-                    observe <ID> - a game
-                    logout - when you are done
-                    quit - playing chess
-                    help - with possible commands
+                      create <NAME> - a game
+                      list - games
+                      join <ID> [WHITE|BLACK] - a game
+                      observe <ID> - a game
+                      logout - when you are done
+                      quit - playing chess
+                      help - with possible commands
                     """;
         } else {
             return """
-                    register - <USERNAME> <PASSWORD> <EMAIL> - to create an account
-                    login - <USERNAME> <PASSWORD> - to play chess
-                    quit - playing chess
-                    help - with possible commands
+                      register - <USERNAME> <PASSWORD> <EMAIL> - to create an account
+                      login - <USERNAME> <PASSWORD> - to play chess
+                      quit - playing chess
+                      help - with possible commands
                     """;
         }
     }
@@ -74,11 +77,17 @@ public class ChessConsole {
             };
         } catch (ResponseException ex) {
             return ex.getMessage();
+        } catch (InputException e) {
+            return "Malformed command: " + e.getMessage();
         }
     }
 
-    private String logout() throws ResponseException {
-        return null;
+    private String logout() throws ResponseException, InputException {
+        assertAuthState(true);
+        server.logout(authToken);
+        authToken = null;
+        isAuthenticated = false;
+        return "Logged out successfully.";
     }
 
     private String observe(String[] params) throws ResponseException {
@@ -101,11 +110,36 @@ public class ChessConsole {
         return null;
     }
 
-    private String register(String[] params) throws ResponseException {
-        return "";
+    private String register(String[] params) throws ResponseException, InputException {
+        assertParamCount(params, 3);
+        assertAuthState(false);
+        String username = params[0];
+        String password = params[1];
+        String email = params[2];
+        var response = server.register(new RegisterRequest(username, password, email));
+        authToken = response.authToken();
+        isAuthenticated = true;
+        return "Logged in as " + response.username();
+    }
+
+    private void assertAuthState(boolean expectedState) throws InputException {
+        if (isAuthenticated != expectedState) {
+            var message = "Can't execute that command while " +
+                          (isAuthenticated ? "logged in." : "logged out.");
+            throw new InputException(message);
+        }
+    }
+
+    private void assertParamCount(String[] params, int paramCount) throws InputException {
+        if (params.length != paramCount) {
+            var message = String.format("Command expected %d arguments, received %d.", paramCount
+                    , params.length);
+            throw new InputException(message);
+        }
     }
 
     private void printPrompt() {
-        System.out.printf("[%s]>>>", isAuthenticated ? "LOGGED IN" : "LOGGED OUT");
+        System.out.printf(RESET_TEXT_COLOR + "\n[%s] >>> ", isAuthenticated ? "LOGGED IN" :
+                "LOGGED " + "OUT");
     }
 }

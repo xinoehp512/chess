@@ -8,6 +8,7 @@ import response.CreateGameResponse;
 import response.ListGamesResponse;
 import response.LoginResponse;
 
+import java.net.ConnectException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -94,6 +95,8 @@ public class ServerFacade {
     private HttpResponse<String> sendRequest(HttpRequest request) throws ResponseException {
         try {
             return client.send(request, BodyHandlers.ofString());
+        } catch (ConnectException ex) {
+            throw new ResponseException("Failed to Connect", 500);
         } catch (Exception ex) {
             throw new ResponseException(ex.getMessage(), 500);
         }
