@@ -24,7 +24,7 @@ public class UserService {
         this.authDAO = authDAO;
     }
 
-    public AuthData register(RegisterRequest registerRequest) throws ResponseException,
+    public LoginResponse register(RegisterRequest registerRequest) throws ResponseException,
             DataAccessException {
         registerRequest.assertGood();
         UserData userData = this.makeUser(registerRequest);
@@ -32,7 +32,7 @@ public class UserService {
             throw new ResponseException("Error: username already taken", 403);
         }
         userDAO.insertUser(userData);
-        return this.makeAuth(userData);
+        return LoginResponse.fromAuth(this.makeAuth(userData));
     }
 
     public LoginResponse login(LoginRequest loginRequest) throws ResponseException,

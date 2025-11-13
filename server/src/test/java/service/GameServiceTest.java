@@ -27,8 +27,10 @@ class GameServiceTest {
         authDAO = new MemoryAuthDAO();
         gameService = new GameService(gameDAO, authDAO);
         var userService = new UserService(new MemoryUserDAO(), authDAO);
-        authData = userService.register(new RegisterRequest("xinoehp512", "password", "e@e.com"));
-        authDataOtherUser = userService.register(new RegisterRequest("Brain", "zzzzz", "z@z.com"));
+        authData =
+                userService.register(new RegisterRequest("xinoehp512", "password", "e@e.com")).getAuthData();
+        authDataOtherUser =
+                userService.register(new RegisterRequest("Brain", "zzzzz", "z@z.com")).getAuthData();
     }
 
     @Test

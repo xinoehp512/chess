@@ -6,7 +6,6 @@ import dataaccess.*;
 import exception.ResponseException;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
-import models.AuthData;
 import org.jetbrains.annotations.NotNull;
 import requests.*;
 import response.CreateGameResponse;
@@ -15,8 +14,6 @@ import response.LoginResponse;
 import service.AdminService;
 import service.GameService;
 import service.UserService;
-
-import java.util.Map;
 
 public class Server {
 
@@ -65,21 +62,15 @@ public class Server {
     private void register(@NotNull Context ctx) throws Exception {
 
         var req = serializer.fromJson(ctx.body(), RegisterRequest.class);
-        AuthData authData = userService.register(req);
+        LoginResponse registerResponse = userService.register(req);
 
-        var res = Map.of("username", authData.username(), "authToken", authData.authToken());
-        ctx.result(serializer.toJson(res));
+        ctx.result(serializer.toJson(registerResponse));
     }
 
     private void login(@NotNull Context ctx) throws Exception {
-        var req = serializer.fromJson(ctx.body(), Map.class);
-        String username = (String) req.get("username");
-        String password = (String) req.get("password");
-        LoginResponse loginResponse = userService.login(new LoginRequest(username, password));
-
-        var res = Map.of("username", loginResponse.username(), "authToken",
-                loginResponse.authToken());
-        ctx.result(serializer.toJson(res));
+        var loginRequest = serializer.fromJson(ctx.body(), LoginRequest.class);
+        LoginResponse loginResponse = userService.login(loginRequest);
+        ctx.result(serializer.toJson(loginResponse));
     }
 
     private void logout(@NotNull Context ctx) throws Exception {
