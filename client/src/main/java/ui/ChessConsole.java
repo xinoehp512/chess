@@ -22,13 +22,13 @@ public class ChessConsole {
         System.out.print(help());
 
         Scanner scanner = new Scanner(System.in);
-        String result= "";
-        while (!Objects.equals(result, "quit")){
+        String result = "";
+        while (!Objects.equals(result, "quit")) {
             printPrompt();
             String line = scanner.nextLine();
             try {
                 result = eval(line);
-                System.out.print(SET_TEXT_COLOR_BLUE+result);
+                System.out.print(SET_TEXT_COLOR_BLUE + result);
             } catch (Exception e) {
                 System.out.print(e.toString());
             }
@@ -62,12 +62,47 @@ public class ChessConsole {
             String cmd = (tokens.length > 0) ? tokens[0] : "help";
             String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
             return switch (cmd) {
-                case "error" -> throw new ResponseException("Error",500);
+                case "register" -> register(params);
+                case "login" -> login(params);
+                case "create" -> createGame(params);
+                case "list" -> listGames();
+                case "join" -> joinGame(params);
+                case "observe" -> observe(params);
+                case "logout" -> logout();
+                case "help" -> help();
                 default -> help();
             };
         } catch (ResponseException ex) {
             return ex.getMessage();
         }
+    }
+
+    private String logout() throws ResponseException {
+        return null;
+    }
+
+    private String observe(String[] params) throws ResponseException {
+        return null;
+    }
+
+    private String joinGame(String[] params) throws ResponseException {
+        return null;
+    }
+
+    private String listGames() throws ResponseException {
+        return null;
+    }
+
+    private String createGame(String[] params) throws ResponseException {
+        return null;
+    }
+
+    private String login(String[] params) throws ResponseException {
+        return null;
+    }
+
+    private String register(String[] params) throws ResponseException {
+        return "";
     }
 
     private void printPrompt() {
