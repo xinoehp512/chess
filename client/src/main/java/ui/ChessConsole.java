@@ -99,8 +99,21 @@ public class ChessConsole {
         return null;
     }
 
-    private String listGames() throws ResponseException {
-        return null;
+    private String listGames() throws ResponseException, InputException {
+        assertAuthState(true);
+        var gameDataList = server.listGames(authToken).games();
+        var gameList = new StringBuilder();
+        for (int i = 0; i < gameDataList.size(); i++) {
+            var gameData = gameDataList.get(i);
+            String gameName = gameData.gameName();
+            String blackUsername = gameData.blackUsername();
+            String whiteUsername = gameData.whiteUsername();
+            String gameListing = String.format("%d: %s (Black: %s, White: %s\n)", i, gameName,
+                    blackUsername != null ? blackUsername : "OPEN",
+                    whiteUsername != null ? whiteUsername : "OPEN");
+            gameList.append(gameListing);
+        }
+        return gameList.toString();
     }
 
     private String createGame(String[] params) throws ResponseException, InputException {
