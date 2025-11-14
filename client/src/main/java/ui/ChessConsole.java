@@ -1,5 +1,6 @@
 package ui;
 
+import chess.ChessGame;
 import exception.ResponseException;
 import models.GameData;
 import requests.CreateGameRequest;
@@ -99,7 +100,7 @@ public class ChessConsole {
         try {
             int listID = Integer.parseInt(params[0]);
             GameData game = getGameByListID(listID);
-            return displayBoard(game,"WHITE");
+            return displayBoard(game, "WHITE");
 
         } catch (NumberFormatException e) {
             throw new InputException(params[0] + " is not a number.");
@@ -117,7 +118,7 @@ public class ChessConsole {
             }
             GameData game = getGameByListID(listID);
             server.joinGame(new JoinGameRequest(color, game.gameID()), authToken);
-            return displayBoard(game,color);
+            return displayBoard(game, color);
 
         } catch (NumberFormatException e) {
             throw new InputException(params[0] + " is not a number.");
@@ -133,23 +134,98 @@ public class ChessConsole {
     }
 
     private String displayBoard(GameData game, String colorPerspective) {
-        displayBoardTemp();
+        displayBoardTemp(colorPerspective.equals("WHITE") ? ChessGame.TeamColor.WHITE :
+                ChessGame.TeamColor.BLACK);
 
-        return "board";
+        return RESET_BG_COLOR + RESET_TEXT_COLOR;
     }
 
-    private static void displayBoardTemp() {
-        String board= """
-                       
-                       
-                       
-                       
-                       
-                       
-                       
-                       
-               \s""";
-        System.out.print(SET_BG_COLOR_DARK_GREY+board+RESET_BG_COLOR);
+    public static void displayBoardTemp(ChessGame.TeamColor colorPerspective) {
+        var boardStr = new StringBuilder();
+
+        var board = switch (colorPerspective) {
+            case WHITE -> new String[]{"rnbqkbnr", "pppppppp", "        ", "        ", "        ",
+                    "   " + "     ", "PPPPPPPP", "RNBQKBNR",};
+
+            case BLACK -> new String[]{"RNBKQBNR", "PPPPPPPP", "        ", "        ", "        ",
+                    "   " + "   " + "  ", "pppppppp", "rnbkqbnr",};
+
+        };
+
+        var edgeRow = switch (colorPerspective) {
+            case WHITE -> " abcdefgh ";
+            case BLACK -> " hgfedcba ";
+        };
+
+        var edgeCol = switch (colorPerspective) {
+            case WHITE -> "87654321";
+            case BLACK -> "12345678";
+        };
+
+
+        boardStr.append(SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLACK);
+        for (int i = 0; i < edgeRow.length(); i++) {
+            char character = edgeRow.charAt(i);
+            boardStr.append(String.format(" %c ", character));
+        }
+
+        ChessGame.TeamColor squareColor = ChessGame.TeamColor.WHITE;
+        boardStr.append(RESET_BG_COLOR + "\n");
+        for (int i = 0; i < board.length; i++) {
+            String row = board[i];
+            boardStr.append(SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLACK);
+            boardStr.append(String.format(" %c ", edgeCol.charAt(i)));
+            if (i < 4) {
+                switch (colorPerspective) {
+                    case WHITE -> {
+                        boardStr.append(SET_TEXT_COLOR_BLUE);
+                    }
+                    case BLACK -> {
+                        boardStr.append(SET_TEXT_COLOR_RED);
+                    }
+                }
+            } else {
+                switch (colorPerspective) {
+                    case WHITE -> {
+                        boardStr.append(SET_TEXT_COLOR_RED);
+                    }
+                    case BLACK -> {
+                        boardStr.append(SET_TEXT_COLOR_BLUE);
+                    }
+                }
+            }
+            for (int j = 0; j < row.length(); j++) {
+                char character = row.charAt(j);
+                switch (squareColor) {
+                    case WHITE -> {
+                        boardStr.append(SET_BG_COLOR_WHITE);
+                        squareColor = ChessGame.TeamColor.BLACK;
+                    }
+                    case BLACK -> {
+                        boardStr.append(SET_BG_COLOR_BLACK);
+                        squareColor = ChessGame.TeamColor.WHITE;
+                    }
+                }
+                boardStr.append(String.format(" %c ", character));
+            }
+            boardStr.append(SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLACK);
+            boardStr.append(String.format(" %c ", edgeCol.charAt(i)));
+            boardStr.append(RESET_BG_COLOR + "\n");
+            switch (squareColor) {
+                case WHITE -> {
+                    squareColor = ChessGame.TeamColor.BLACK;
+                }
+                case BLACK -> {
+                    squareColor = ChessGame.TeamColor.WHITE;
+                }
+            }
+        }
+        boardStr.append(SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLACK);
+        for (int i = 0; i < edgeRow.length(); i++) {
+            char character = edgeRow.charAt(i);
+            boardStr.append(String.format(" %c ", character));
+        }
+        System.out.print(boardStr.toString());
     }
 
     private String listGames() throws ResponseException, InputException {
