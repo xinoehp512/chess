@@ -1,7 +1,9 @@
 package ui;
 
 import exception.ResponseException;
+import models.GameData;
 import requests.CreateGameRequest;
+import requests.JoinGameRequest;
 import requests.LoginRequest;
 import requests.RegisterRequest;
 import server.ServerFacade;
@@ -91,12 +93,63 @@ public class ChessConsole {
         return "Logged out successfully.";
     }
 
-    private String observe(String[] params) throws ResponseException {
-        return null;
+    private String observe(String[] params) throws ResponseException, InputException {
+        assertParamCount(params, 1);
+        assertAuthState(true);
+        try {
+            int listID = Integer.parseInt(params[0]);
+            GameData game = getGameByListID(listID);
+            return displayBoard(game,"WHITE");
+
+        } catch (NumberFormatException e) {
+            throw new InputException(params[0] + " is not a number.");
+        }
     }
 
-    private String joinGame(String[] params) throws ResponseException {
-        return null;
+    private String joinGame(String[] params) throws ResponseException, InputException {
+        assertParamCount(params, 2);
+        assertAuthState(true);
+        try {
+            int listID = Integer.parseInt(params[0]);
+            String color = params[1].toUpperCase();
+            if (!color.equals("WHITE") && !color.equals("BLACK")) {
+                throw new InputException(color + " is not black or white.");
+            }
+            GameData game = getGameByListID(listID);
+            server.joinGame(new JoinGameRequest(color, game.gameID()), authToken);
+            return displayBoard(game,color);
+
+        } catch (NumberFormatException e) {
+            throw new InputException(params[0] + " is not a number.");
+        }
+    }
+
+    private GameData getGameByListID(int listID) throws InputException, ResponseException {
+        var gameDataList = server.listGames(authToken).games();
+        if (listID < 0 || listID >= gameDataList.size()) {
+            throw new InputException(String.format("%d is out of range.", listID));
+        }
+        return gameDataList.get(listID);
+    }
+
+    private String displayBoard(GameData game, String colorPerspective) {
+        displayBoardTemp();
+
+        return "board";
+    }
+
+    private static void displayBoardTemp() {
+        String board= """
+                       
+                       
+                       
+                       
+                       
+                       
+                       
+                       
+               \s""";
+        System.out.print(SET_BG_COLOR_DARK_GREY+board+RESET_BG_COLOR);
     }
 
     private String listGames() throws ResponseException, InputException {
@@ -108,7 +161,7 @@ public class ChessConsole {
             String gameName = gameData.gameName();
             String blackUsername = gameData.blackUsername();
             String whiteUsername = gameData.whiteUsername();
-            String gameListing = String.format("%d: %s (Black: %s, White: %s\n)", i, gameName,
+            String gameListing = String.format("%d: %s (Black: %s, White: %s)\n", i, gameName,
                     blackUsername != null ? blackUsername : "OPEN",
                     whiteUsername != null ? whiteUsername : "OPEN");
             gameList.append(gameListing);
