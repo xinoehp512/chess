@@ -77,6 +77,7 @@ public class ChessConsole {
                 case "observe" -> observe(params);
                 case "logout" -> logout();
                 case "help" -> help();
+                case "quit" -> "quit";
                 default -> help();
             };
         } catch (ResponseException ex) {
@@ -127,10 +128,10 @@ public class ChessConsole {
 
     private GameData getGameByListID(int listID) throws InputException, ResponseException {
         var gameDataList = server.listGames(authToken).games();
-        if (listID < 0 || listID >= gameDataList.size()) {
+        if (listID < 1 || listID > gameDataList.size()) {
             throw new InputException(String.format("%d is out of range.", listID));
         }
-        return gameDataList.get(listID);
+        return gameDataList.get(listID - 1);
     }
 
     private String displayBoard(GameData game, String colorPerspective) {
@@ -237,7 +238,8 @@ public class ChessConsole {
             String gameName = gameData.gameName();
             String blackUsername = gameData.blackUsername();
             String whiteUsername = gameData.whiteUsername();
-            String gameListing = String.format("%d: %s (Black: %s, White: %s)\n", i, gameName,
+            String gameListing = String.format("%d: %s (Black: %s, White: %s)\n",
+                    i + 1, gameName,
                     blackUsername != null ? blackUsername : "OPEN",
                     whiteUsername != null ? whiteUsername : "OPEN");
             gameList.append(gameListing);
