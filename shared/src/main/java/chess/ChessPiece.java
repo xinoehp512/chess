@@ -14,7 +14,6 @@ import java.util.Objects;
 public class ChessPiece {
     private final ChessGame.TeamColor color;
     private final PieceType type;
-    private boolean hasMoved = false;
 
     public ChessPiece(ChessGame.TeamColor pieceColor, PieceType type) {
         color = pieceColor;
@@ -24,19 +23,10 @@ public class ChessPiece {
     public ChessPiece(ChessPiece chessPiece) {
         color = chessPiece.color;
         type = chessPiece.type;
-        hasMoved = chessPiece.hasMoved;
     }
 
     public boolean is(ChessGame.TeamColor teamColor, PieceType pieceType) {
         return teamColor == color && pieceType == type;
-    }
-
-    public boolean hasNotMoved() {
-        return !hasMoved;
-    }
-
-    public void setMoved() {
-        hasMoved = true;
     }
 
     public Collection<ChessMove> pieceAttacks(ChessBoard board, ChessPosition myPosition) {
@@ -112,8 +102,7 @@ public class ChessPiece {
                     if (allowMoves) {
                         positions.add(targetPos);
                     }
-                    if (Objects.equals(targetPos, board.getEnPassantSquare()) &&
-                        this.color != board.getEnPassantColor() && type == PieceType.PAWN &&
+                    if (board.canEnPassantAt(targetPos) && type == PieceType.PAWN &&
                         allowCaptures) {
                         positions.add(targetPos);
                     }

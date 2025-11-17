@@ -37,8 +37,7 @@ public class ChessGame {
      * Enum identifying the 2 possible teams in a chess game
      */
     public enum TeamColor {
-        WHITE,
-        BLACK
+        WHITE, BLACK
     }
 
     public static TeamColor otherTeam(TeamColor team) {
@@ -55,7 +54,8 @@ public class ChessGame {
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         var moves = board.validMoves(startPosition);
         var piece = board.getPiece(startPosition);
-        if (piece != null && piece.getPieceType() == ChessPiece.PieceType.KING && piece.hasNotMoved()) {
+        if (piece != null && piece.getPieceType() == ChessPiece.PieceType.KING &&
+            board.neverMovedFrom(startPosition)) {
             var color = piece.getTeamColor();
             var attackedByOpponent = board.getAttackedBy(otherTeam(color));
             var kingX = startPosition.getColumn();
@@ -67,7 +67,8 @@ public class ChessGame {
                 var canCastle = true;
                 for (int x = kingX; Math.abs(x - rookX) > 0; x += direction) {
                     var position = new ChessPosition(kingY, x);
-                    if ((board.getPiece(position) != null && !(x == kingX)) || attackedByOpponent.contains(position)) {
+                    if ((board.getPiece(position) != null && !(x == kingX)) ||
+                        attackedByOpponent.contains(position)) {
                         canCastle = false;
                         break;
                     }
@@ -98,30 +99,16 @@ public class ChessGame {
         }
         var pieceColor = targetPiece.getTeamColor();
         if (pieceColor != currentTurn) {
-            throw new InvalidMoveException(targetPiece.getTeamColor() + " cannot move on " + currentTurn + "'s turn.");
+            throw new InvalidMoveException(
+                    targetPiece.getTeamColor() + " cannot move on " + currentTurn + "'s turn.");
         }
         var legalMoves = validMoves(startPosition);
         if (legalMoves != null && !legalMoves.contains(move)) {
             throw new InvalidMoveException(move + " is invalid.");
         }
-        var capturedPiece=board.makeMove(move);
-        board.resetEnPassantSquare();
-        if (targetPiece.getPieceType() == ChessPiece.PieceType.PAWN) {
-            var startX = startPosition.getRow();
-            var endX = endPosition.getRow();
-            if (Math.abs(startX - endX) == 2) { //Double Step Move
-                var skippedSquare = new ChessPosition((startX + endX) / 2, startPosition.getColumn());
-                board.setEnPassantSquare(skippedSquare,pieceColor);
-            }
-            var endColumn = endPosition.getColumn();
-            if (capturedPiece == null) {
-                board.removePiece(new ChessPosition(startX, endColumn));
-            }
-        }
-        if (move.getPromotionPiece() != null) {
-            var promotedPiece = new ChessPiece(pieceColor, move.getPromotionPiece());
-            board.addPiece(endPosition, promotedPiece);
-        }
+        board.makeMove(move);
+
+
         if (targetPiece.getPieceType() == ChessPiece.PieceType.KING) {
             var kingRow = startPosition.getRow();
             var startX = startPosition.getColumn();

@@ -10,25 +10,15 @@ import java.util.*;
  */
 public class ChessBoard {
     private final ChessPiece[][] board = new ChessPiece[8][8];
-    private static final String[] START_TEMPLATE = {
-            "RNBQKBNR",
-            "PPPPPPPP",
-            "        ",
-            "        ",
-            "        ",
-            "        ",
-            "pppppppp",
-            "rnbqkbnr",
-    };
-    private ChessPosition enPassantSquare;
-    private ChessGame.TeamColor enPassantColor;
+    private static final String[] START_TEMPLATE = {"RNBQKBNR", "PPPPPPPP", "        ", "        "
+            , "        ", "        ", "pppppppp", "rnbqkbnr",};
+
+    private final List<ChessMove> pastMoves = new ArrayList<>();
 
     public ChessBoard() {
     }
 
     public ChessBoard(ChessBoard board) {
-        enPassantSquare = board.enPassantSquare;
-        enPassantColor = board.enPassantColor;
         for (int i = 0; i < 8; i++) {
             for (int j = 0; j < 8; j++) {
                 var piece = board.board[i][j];
@@ -53,7 +43,7 @@ public class ChessBoard {
      * @param move the move to execute
      * @throws InvalidMoveException if move is invalid
      */
-    public ChessPiece makeMove(ChessMove move) throws InvalidMoveException {
+    public void makeMove(ChessMove move) throws InvalidMoveException {
         var startPosition = move.getStartPosition();
         var endPosition = move.getEndPosition();
         var piece = getPiece(startPosition);
@@ -62,9 +52,21 @@ public class ChessBoard {
         }
         removePiece(startPosition);
         ChessPiece capturedPiece = removePiece(endPosition);
-        addPiece(endPosition,piece);
-        piece.setMoved();
-        return capturedPiece;
+        if (capturedPiece == null && piece.getPieceType() == ChessPiece.PieceType.PAWN) {
+            int backDirection = switch (piece.getTeamColor()) {
+                case WHITE -> -1;
+                case BLACK -> 1;
+            };
+            removePiece(new ChessPosition(
+                    endPosition.getRow() + backDirection, endPosition.getColumn()));
+        }
+        if (move.getPromotionPiece() != null) {
+            var promotedPiece = new ChessPiece(piece.getTeamColor(), move.getPromotionPiece());
+            addPiece(endPosition, promotedPiece);
+        } else {
+            addPiece(endPosition, piece);
+        }
+        pastMoves.add(move);
     }
 
     /**
@@ -79,7 +81,7 @@ public class ChessBoard {
     }
 
     public ChessPiece removePiece(ChessPosition position) {
-        var capturedPiece=getPiece(position);
+        var capturedPiece = getPiece(position);
         board[position.getRow() - 1][position.getColumn() - 1] = null;
         return capturedPiece;
     }
@@ -89,7 +91,6 @@ public class ChessBoard {
      * (How the game of chess normally starts)
      */
     public void resetBoard() {
-        enPassantSquare = null;
         for (int row = 0; row < 8; row++) {
             String pieceRow = ChessBoard.START_TEMPLATE[row];
             for (int col = 0; col < 8; col++) {
@@ -99,7 +100,8 @@ public class ChessBoard {
                 if (pieceChar == ' ') {
                     piece = null;
                 } else {
-                    chess.ChessGame.TeamColor color = Character.isUpperCase(pieceChar) ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
+                    ChessGame.TeamColor color = Character.isUpperCase(pieceChar) ?
+                            ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
                     ChessPiece.PieceType type = switch (Character.toLowerCase(pieceChar)) {
                         case 'p' -> ChessPiece.PieceType.PAWN;
                         case 'b' -> ChessPiece.PieceType.BISHOP;
@@ -248,9 +250,7 @@ public class ChessBoard {
 
     public HashSet<ChessMove> validMoves(ChessGame.TeamColor teamColor) {
         var legalMoves = new HashSet<ChessMove>();
-        getPiecePositionsOf(teamColor).forEach(
-                position -> legalMoves.addAll(validMoves(position))
-        );
+        getPiecePositionsOf(teamColor).forEach(position -> legalMoves.addAll(validMoves(position)));
         return legalMoves;
     }
 
@@ -260,26 +260,42 @@ public class ChessBoard {
         HashSet<ChessPosition> rookPositions = new HashSet<>();
         for (var position : piecePositions) {
             var piece = getPiece(position);
-            if (piece.getPieceType() == ChessPiece.PieceType.ROOK && piece.hasNotMoved()) {
+            if (piece.getPieceType() == ChessPiece.PieceType.ROOK && neverMovedFrom(position)) {
                 rookPositions.add(position);
             }
         }
         return rookPositions;
     }
 
-    public void resetEnPassantSquare() {
-        enPassantSquare=null;
+    public boolean neverMovedFrom(ChessPosition position) {
+        for (ChessMove move : pastMoves) {
+            if (Objects.equals(move.getStartPosition(), position)) {
+                return false;
+            }
+        }
+        return true;
     }
 
-    public void setEnPassantSquare(ChessPosition skippedSquare, ChessGame.TeamColor color) {
-        enPassantSquare=skippedSquare;
-        enPassantColor=color;
-    }
-    public ChessGame.TeamColor getEnPassantColor() {
-        return  enPassantColor;
-    }
-
-    public ChessPosition getEnPassantSquare() {
-        return enPassantSquare;
+    public boolean canEnPassantAt(ChessPosition targetPos) {
+        if (pastMoves.isEmpty()) {
+            return false;
+        }
+        ChessMove lastMove = pastMoves.getLast();
+        ChessPiece movedPiece = getPiece(lastMove.getEndPosition());
+        if (movedPiece.getPieceType() != ChessPiece.PieceType.PAWN) {
+            return false;
+        }
+        if (lastMove.getStartPosition().getColumn() != targetPos.getColumn() ||
+            lastMove.getEndPosition().getColumn() != targetPos.getColumn()) {
+            return false;
+        }
+        int yDist = Math.abs(
+                lastMove.getStartPosition().getRow() - lastMove.getEndPosition().getRow());
+        if (yDist < 2) {
+            return false;
+        }
+        int skippedRow =
+                (lastMove.getStartPosition().getRow() + lastMove.getEndPosition().getRow()) / 2;
+        return targetPos.getRow() == skippedRow;
     }
 }
