@@ -1,5 +1,6 @@
 package dataaccess;
 
+import chess.ChessGame;
 import models.GameData;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -28,7 +29,7 @@ class GameDAOTest {
     void insertGame(Class<? extends GameDAO> gameDAOClass) throws Exception {
         var gameDAO = gameDAOClass.getDeclaredConstructor().newInstance();
         gameDAO.clear();
-        var gameData = new GameData(0, "white", "black", "game1", null);
+        var gameData = new GameData(0, "white", "black", "game1", new ChessGame());
         var gameID = gameDAO.insertGame(gameData);
         var storedGameData = gameDAO.getGame(gameID);
         assertEquals(gameData.addID(gameID), storedGameData);
@@ -39,7 +40,7 @@ class GameDAOTest {
     void deleteGame(Class<? extends GameDAO> gameDAOClass) throws Exception {
         var gameDAO = gameDAOClass.getDeclaredConstructor().newInstance();
         gameDAO.clear();
-        var gameData = new GameData(0, "white", "black", "game1", null);
+        var gameData = new GameData(0, "white", "black", "game1", new ChessGame());
         var gameID = gameDAO.insertGame(gameData);
         gameDAO.deleteGame(gameID);
         assertNull(gameDAO.getGame(gameID));
@@ -61,7 +62,7 @@ class GameDAOTest {
 
         int[] gameIDs = new int[3];
         for (var i = 0; i < 3; i++) {
-            var gameData = new GameData(0, "white", "black", "game1", null);
+            var gameData = new GameData(0, "white", "black", "game1", new ChessGame());
             gameIDs[i] = gameDAO.insertGame(gameData);
         }
         gameDAO.clear();

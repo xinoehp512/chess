@@ -27,7 +27,7 @@ public class GameService {
     public CreateGameResponse createGame(CreateGameRequest createGameRequest, String authToken) throws ResponseException, DataAccessException {
         createGameRequest.assertGood();
         verifyAuth(authToken);
-        GameData gameData = new GameData(0, null, null, createGameRequest.gameName(), null);
+        GameData gameData = new GameData(0, null, null, createGameRequest.gameName(), new ChessGame());
         int gameID;
         gameID = gameDAO.insertGame(gameData);
         return new CreateGameResponse(gameID);
