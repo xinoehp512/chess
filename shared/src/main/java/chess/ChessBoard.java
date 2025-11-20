@@ -141,17 +141,7 @@ public class ChessBoard {
                     builder.append(".");
                     continue;
                 }
-                char pieceChar = switch (piece.getPieceType()) {
-                    case ChessPiece.PieceType.PAWN -> 'p';
-                    case ChessPiece.PieceType.BISHOP -> 'b';
-                    case ChessPiece.PieceType.KNIGHT -> 'n';
-                    case ChessPiece.PieceType.ROOK -> 'r';
-                    case ChessPiece.PieceType.QUEEN -> 'q';
-                    case ChessPiece.PieceType.KING -> 'k';
-                };
-                if (piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
-                    pieceChar = Character.toUpperCase(pieceChar);
-                }
+                char pieceChar = piece.getChar();
                 builder.append(pieceChar);
             }
             builder.append("\n");

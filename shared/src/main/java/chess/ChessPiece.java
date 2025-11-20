@@ -40,6 +40,21 @@ public class ChessPiece {
         };
     }
 
+    public char getChar() {
+        char pieceChar = switch (getPieceType()) {
+            case ChessPiece.PieceType.PAWN -> 'p';
+            case ChessPiece.PieceType.BISHOP -> 'b';
+            case ChessPiece.PieceType.KNIGHT -> 'n';
+            case ChessPiece.PieceType.ROOK -> 'r';
+            case ChessPiece.PieceType.QUEEN -> 'q';
+            case ChessPiece.PieceType.KING -> 'k';
+        };
+        if (getTeamColor() == ChessGame.TeamColor.WHITE) {
+            pieceChar = Character.toUpperCase(pieceChar);
+        }
+        return pieceChar;
+    }
+
     /**
      * The various different chess piece options
      */

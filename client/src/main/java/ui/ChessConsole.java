@@ -1,6 +1,8 @@
 package ui;
 
 import chess.ChessGame;
+import chess.ChessGame.TeamColor;
+import chess.ChessPiece;
 import exception.ResponseException;
 import models.GameData;
 import requests.CreateGameRequest;
@@ -134,92 +136,55 @@ public class ChessConsole {
         return gameDataList.get(listID - 1);
     }
 
-    private String displayBoard(GameData game, String colorPerspective) {
-        displayBoardTemp(colorPerspective.equals("WHITE") ? ChessGame.TeamColor.WHITE :
-                ChessGame.TeamColor.BLACK);
-
-        return RESET_BG_COLOR + RESET_TEXT_COLOR;
-    }
-
-    public static void displayBoardTemp(ChessGame.TeamColor colorPerspective) {
+    private String displayBoard(GameData gameData, String colorPerspectiveStr) {
+        TeamColor colorPerspective = colorPerspectiveStr.equals("WHITE") ? TeamColor.WHITE :
+                TeamColor.BLACK;
+        var board = gameData.game().getBoard().getBoard();
         var boardStr = new StringBuilder();
 
-        var board = switch (colorPerspective) {
-            case WHITE -> new String[]{"rnbqkbnr", "pppppppp", "        ", "        ", "        ",
-                    "   " + "     ", "PPPPPPPP", "RNBQKBNR",};
+        var edgeRow = " abcdefgh ";
 
-            case BLACK -> new String[]{"RNBKQBNR", "PPPPPPPP", "        ", "        ", "        ",
-                    "   " + "   " + "  ", "pppppppp", "rnbkqbnr",};
+        var edgeCol = "12345677";
 
-        };
-
-        var edgeRow = switch (colorPerspective) {
-            case WHITE -> " abcdefgh ";
-            case BLACK -> " hgfedcba ";
-        };
-
-        var edgeCol = switch (colorPerspective) {
-            case WHITE -> "87654321";
-            case BLACK -> "12345678";
-        };
+        boolean reversed = (colorPerspective == TeamColor.BLACK);
 
 
         boardStr.append(SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLACK);
         for (int i = 0; i < edgeRow.length(); i++) {
-            char character = edgeRow.charAt(i);
+            var idx = reversed ? i : edgeRow.length() - i - 1;
+            char character = edgeRow.charAt(idx);
             boardStr.append(String.format(" %c ", character));
         }
 
-        ChessGame.TeamColor squareColor = ChessGame.TeamColor.WHITE;
+        TeamColor squareColor = TeamColor.WHITE;
         boardStr.append(RESET_BG_COLOR + "\n");
         for (int i = 0; i < board.length; i++) {
-            String row = board[i];
+            var rowIdx = reversed ? i : board.length - i - 1;
+            ChessPiece[] row = board[rowIdx];
             boardStr.append(SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLACK);
-            boardStr.append(String.format(" %c ", edgeCol.charAt(i)));
-            if (i < 4) {
-                switch (colorPerspective) {
-                    case WHITE -> {
-                        boardStr.append(SET_TEXT_COLOR_BLUE);
-                    }
-                    case BLACK -> {
-                        boardStr.append(SET_TEXT_COLOR_RED);
-                    }
-                }
-            } else {
-                switch (colorPerspective) {
-                    case WHITE -> {
-                        boardStr.append(SET_TEXT_COLOR_RED);
-                    }
-                    case BLACK -> {
-                        boardStr.append(SET_TEXT_COLOR_BLUE);
-                    }
-                }
-            }
-            for (int j = 0; j < row.length(); j++) {
-                char character = row.charAt(j);
-                switch (squareColor) {
-                    case WHITE -> {
-                        boardStr.append(SET_BG_COLOR_WHITE);
-                        squareColor = ChessGame.TeamColor.BLACK;
-                    }
-                    case BLACK -> {
-                        boardStr.append(SET_BG_COLOR_BLACK);
-                        squareColor = ChessGame.TeamColor.WHITE;
-                    }
+            boardStr.append(String.format(" %c ", edgeCol.charAt(rowIdx)));
+            for (int j = 0; j < row.length; j++) {
+                var colIdx = !reversed ? j : row.length - j - 1;
+                var bgColor =
+                        squareColor == TeamColor.WHITE ? SET_BG_COLOR_WHITE : SET_BG_COLOR_BLACK;
+                squareColor = squareColor == TeamColor.WHITE ? TeamColor.BLACK : TeamColor.WHITE;
+                boardStr.append(bgColor);
+
+                ChessPiece chessPiece = row[colIdx];
+                char character = ' ';
+                if (chessPiece != null) {
+                    character = chessPiece.getChar();
+                    var textColor = chessPiece.getTeamColor() ==
+                                    TeamColor.WHITE ? SET_TEXT_COLOR_BLUE : SET_TEXT_COLOR_RED;
+                    boardStr.append(textColor);
+
                 }
                 boardStr.append(String.format(" %c ", character));
             }
             boardStr.append(SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLACK);
             boardStr.append(String.format(" %c ", edgeCol.charAt(i)));
             boardStr.append(RESET_BG_COLOR + "\n");
-            switch (squareColor) {
-                case WHITE -> {
-                    squareColor = ChessGame.TeamColor.BLACK;
-                }
-                case BLACK -> {
-                    squareColor = ChessGame.TeamColor.WHITE;
-                }
-            }
+            squareColor = squareColor == TeamColor.WHITE ? TeamColor.BLACK : TeamColor.WHITE;
         }
         boardStr.append(SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLACK);
         for (int i = 0; i < edgeRow.length(); i++) {
@@ -227,6 +192,8 @@ public class ChessConsole {
             boardStr.append(String.format(" %c ", character));
         }
         System.out.print(boardStr.toString());
+
+        return RESET_BG_COLOR + RESET_TEXT_COLOR;
     }
 
     private String listGames() throws ResponseException, InputException {
