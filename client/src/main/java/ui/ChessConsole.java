@@ -1,6 +1,5 @@
 package ui;
 
-import chess.ChessGame;
 import chess.ChessGame.TeamColor;
 import chess.ChessPiece;
 import exception.ResponseException;
@@ -174,6 +173,7 @@ public class ChessConsole {
                 char character = ' ';
                 if (chessPiece != null) {
                     character = chessPiece.getChar();
+                    character = Character.toUpperCase(character);
                     var textColor = chessPiece.getTeamColor() ==
                                     TeamColor.WHITE ? SET_TEXT_COLOR_BLUE : SET_TEXT_COLOR_RED;
                     boardStr.append(textColor);
