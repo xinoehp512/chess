@@ -1,7 +1,8 @@
 package ui;
 
 /**
- * This class contains constants and functions relating to ANSI Escape Sequences that are useful in the Client display
+ * This class contains constants and functions relating to ANSI Escape Sequences that are useful
+ * in the Client display
  */
 public class EscapeSequences {
 
@@ -39,7 +40,7 @@ public class EscapeSequences {
     public static final String SET_BG_COLOR_LIGHT_GREY = SET_BG_COLOR + "242m";
     public static final String SET_BG_COLOR_DARK_GREY = SET_BG_COLOR + "235m";
     public static final String SET_BG_COLOR_RED = SET_BG_COLOR + "160m";
-    public static final String SET_BG_COLOR_GREEN = SET_BG_COLOR + "46m";
+    public static final String SET_BG_COLOR_LIGHT_GREEN = SET_BG_COLOR + "113m";
     public static final String SET_BG_COLOR_DARK_GREEN = SET_BG_COLOR + "22m";
     public static final String SET_BG_COLOR_YELLOW = SET_BG_COLOR + "226m";
     public static final String SET_BG_COLOR_BLUE = SET_BG_COLOR + "12m";
@@ -61,5 +62,7 @@ public class EscapeSequences {
     public static final String BLACK_PAWN = " ♟ ";
     public static final String EMPTY = " \u2003 ";
 
-    public static String moveCursorToLocation(int x, int y) { return UNICODE_ESCAPE + "[" + y + ";" + x + "H"; }
+    public static String moveCursorToLocation(int x, int y) {
+        return UNICODE_ESCAPE + "[" + y + ";" + x + "H";
+    }
 }

@@ -142,15 +142,22 @@ public class ChessConsole {
         var boardStr = new StringBuilder();
 
         var edgeRow = " abcdefgh ";
+        var edgeCol = "12345678";
 
-        var edgeCol = "12345677";
+        String whiteTileColor = SET_BG_COLOR_LIGHT_GREEN;
+        String blackTileColor = SET_BG_COLOR_DARK_GREEN;
+
+        String whitePieceColor = SET_TEXT_COLOR_WHITE;
+        String blackPieceColor = SET_TEXT_COLOR_BLACK;
+
+        String borderFormat = SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLACK;
 
         boolean reversed = (colorPerspective == TeamColor.BLACK);
 
 
-        boardStr.append(SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLACK);
+        boardStr.append(borderFormat);
         for (int i = 0; i < edgeRow.length(); i++) {
-            var idx = reversed ? i : edgeRow.length() - i - 1;
+            var idx = reversed ? edgeRow.length() - i - 1 : i;
             char character = edgeRow.charAt(idx);
             boardStr.append(String.format(" %c ", character));
         }
@@ -160,12 +167,11 @@ public class ChessConsole {
         for (int i = 0; i < board.length; i++) {
             var rowIdx = reversed ? i : board.length - i - 1;
             ChessPiece[] row = board[rowIdx];
-            boardStr.append(SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLACK);
+            boardStr.append(borderFormat);
             boardStr.append(String.format(" %c ", edgeCol.charAt(rowIdx)));
             for (int j = 0; j < row.length; j++) {
                 var colIdx = !reversed ? j : row.length - j - 1;
-                var bgColor =
-                        squareColor == TeamColor.WHITE ? SET_BG_COLOR_WHITE : SET_BG_COLOR_BLACK;
+                var bgColor = squareColor == TeamColor.WHITE ? whiteTileColor : blackTileColor;
                 squareColor = squareColor == TeamColor.WHITE ? TeamColor.BLACK : TeamColor.WHITE;
                 boardStr.append(bgColor);
 
@@ -175,20 +181,21 @@ public class ChessConsole {
                     character = chessPiece.getChar();
                     character = Character.toUpperCase(character);
                     var textColor = chessPiece.getTeamColor() ==
-                                    TeamColor.WHITE ? SET_TEXT_COLOR_BLUE : SET_TEXT_COLOR_RED;
+                                    TeamColor.WHITE ? whitePieceColor : blackPieceColor;
                     boardStr.append(textColor);
 
                 }
                 boardStr.append(String.format(" %c ", character));
             }
-            boardStr.append(SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLACK);
-            boardStr.append(String.format(" %c ", edgeCol.charAt(i)));
+            boardStr.append(borderFormat);
+            boardStr.append(String.format(" %c ", edgeCol.charAt(rowIdx)));
             boardStr.append(RESET_BG_COLOR + "\n");
             squareColor = squareColor == TeamColor.WHITE ? TeamColor.BLACK : TeamColor.WHITE;
         }
-        boardStr.append(SET_BG_COLOR_LIGHT_GREY + SET_TEXT_COLOR_BLACK);
+        boardStr.append(borderFormat);
         for (int i = 0; i < edgeRow.length(); i++) {
-            char character = edgeRow.charAt(i);
+            var idx = reversed ? edgeRow.length() - i - 1 : i;
+            char character = edgeRow.charAt(idx);
             boardStr.append(String.format(" %c ", character));
         }
         System.out.print(boardStr.toString());
