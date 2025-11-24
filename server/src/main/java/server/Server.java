@@ -6,18 +6,25 @@ import dataaccess.*;
 import exception.ResponseException;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
+import io.javalin.websocket.WsCloseContext;
+import io.javalin.websocket.WsConnectContext;
+import io.javalin.websocket.WsMessageContext;
 import org.jetbrains.annotations.NotNull;
 import requests.*;
 import response.CreateGameResponse;
 import response.ListGamesResponse;
 import response.LoginResponse;
+import server.websocket.ConnectionManager;
 import service.AdminService;
 import service.GameService;
 import service.UserService;
+import websocket.commands.UserGameCommand;
+import websocket.messages.ServerMessage;
 
 public class Server {
 
     private final Javalin server;
+    private final ConnectionManager connections;
     private final GameService gameService;
     private final UserService userService;
     private final AdminService adminService;
@@ -39,6 +46,7 @@ public class Server {
         userService = new UserService(userDAO, authDAO);
         adminService = new AdminService(gameDAO, authDAO, userDAO);
 
+        connections = new ConnectionManager();
 
         server = Javalin.create(config -> config.staticFiles.add("web"));
         server.delete("db", this::clear);
@@ -50,10 +58,17 @@ public class Server {
         server.put("game", this::joinGame);
         server.exception(DataAccessException.class, this::databaseExceptionHandler);
         server.exception(ResponseException.class, this::exceptionHandler);
+        server.ws("/ws", ws -> {
+            ws.onConnect(this::handleConnect);
+            ws.onMessage(this::handleMessage);
+            ws.onClose(this::handleClose);
+        });
+        server.exception(Exception.class, (e, context) -> e.printStackTrace());
 
 
     }
 
+    /* Endpoints */
     private void clear(@NotNull Context ctx) throws Exception {
         adminService.clear();
         ctx.result("{}");
@@ -103,6 +118,37 @@ public class Server {
         }
     }
 
+    /* Websocket Handlers */
+    private void handleConnect(WsConnectContext wsConnectContext) {
+        System.out.println("Websocket Connected.");
+        wsConnectContext.enableAutomaticPings();
+    }
+
+    private void handleMessage(WsMessageContext wsMessageContext) {
+        UserGameCommand command = serializer.fromJson(wsMessageContext.message(),
+                UserGameCommand.class);
+        switch (command.getCommandType()) {
+            case CONNECT -> {
+                connections.add(wsMessageContext.session);
+            }
+            case MAKE_MOVE -> {
+//                        connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType
+//                        .LOAD_GAME),);
+            }
+            case LEAVE -> {
+                connections.remove(wsMessageContext.session);
+            }
+            case RESIGN -> {
+                connections.remove(wsMessageContext.session);
+            }
+        }
+    }
+
+    private void handleClose(WsCloseContext wsCloseContext) {
+        System.out.println("Websocket Closed.");
+    }
+
+    /* Exception Handlers */
     private void databaseExceptionHandler(@NotNull DataAccessException e, @NotNull Context ctx) {
         ctx.status(500);
         ctx.result(new ResponseException("Error: database", 500).toJson());
@@ -113,7 +159,7 @@ public class Server {
         ctx.result(e.toJson());
     }
 
-
+    /* Server Functions */
     public int run(int desiredPort) {
         server.start(desiredPort);
         return server.port();
@@ -122,4 +168,6 @@ public class Server {
     public void stop() {
         server.stop();
     }
+
+
 }
