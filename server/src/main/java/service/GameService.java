@@ -11,9 +11,11 @@ import requests.CreateGameRequest;
 import requests.JoinGameRequest;
 import exception.ResponseException;
 import response.CreateGameResponse;
+import response.GetGameResponse;
 import response.ListGamesResponse;
 
 import java.util.List;
+import java.util.Objects;
 
 public class GameService {
     private final GameDAO gameDAO;
@@ -27,20 +29,13 @@ public class GameService {
     public CreateGameResponse createGame(CreateGameRequest createGameRequest, String authToken) throws ResponseException, DataAccessException {
         createGameRequest.assertGood();
         verifyAuth(authToken);
-        GameData gameData = new GameData(0, null, null, createGameRequest.gameName(), new ChessGame());
+        GameData gameData = new GameData(0, null, null, createGameRequest.gameName(),
+                new ChessGame());
         int gameID;
         gameID = gameDAO.insertGame(gameData);
         return new CreateGameResponse(gameID);
     }
 
-    private AuthData verifyAuth(String authToken) throws ResponseException, DataAccessException {
-        AuthData auth;
-        auth = authDAO.getAuth(authToken);
-        if (auth == null) {
-            throw new ResponseException("Error: unauthorized", 401);
-        }
-        return auth;
-    }
 
     public ListGamesResponse listGames(String authToken) throws ResponseException,
             DataAccessException {
@@ -53,8 +48,7 @@ public class GameService {
     public void joinGame(JoinGameRequest joinGameRequest, String authToken) throws ResponseException, DataAccessException {
         joinGameRequest.assertGood();
         var auth = verifyAuth(authToken);
-        GameData game;
-        game = gameDAO.getGame(joinGameRequest.gameID());
+        GameData game = gameDAO.getGame(joinGameRequest.gameID());
         if (game == null) {
             throw new ResponseException("Error: bad request", 400);
         }
@@ -64,6 +58,23 @@ public class GameService {
         } catch (DataAccessException e) {
             throw new RuntimeException("Congratulations, you *really* broke it.");
         }
+    }
+
+    public GetGameResponse getGame(int gameID, String authToken) throws ResponseException
+            , DataAccessException {
+        var auth = verifyAuth(authToken);
+        GameData game = gameDAO.getGame(gameID);
+        if (game == null) {
+            throw new ResponseException("Error: bad request", 400);
+        }
+        ChessGame.TeamColor playerColor = null;
+        if (Objects.equals(auth.username(), game.whiteUsername())) {
+            playerColor = ChessGame.TeamColor.WHITE;
+        } else if (Objects.equals(auth.username(), game.blackUsername())) {
+            playerColor = ChessGame.TeamColor.BLACK;
+        }
+
+        return new GetGameResponse(game, playerColor, auth.username());
     }
 
     private GameData addPlayer(GameData game, String username, String playerColor) throws ResponseException {
@@ -77,6 +88,15 @@ public class GameService {
             throw new ResponseException("Error: already taken", 403);
         }
         return game.addColor(color, username);
+    }
+
+    private AuthData verifyAuth(String authToken) throws ResponseException, DataAccessException {
+        AuthData auth;
+        auth = authDAO.getAuth(authToken);
+        if (auth == null) {
+            throw new ResponseException("Error: unauthorized", 401);
+        }
+        return auth;
     }
 
 }

@@ -46,7 +46,7 @@ public class DatabaseGameDAO implements GameDAO {
                     }
                 }
             }
-        } catch (DataAccessException | SQLException e) {
+        } catch (SQLException e) {
             throw new DataAccessException("Database Error: ", e);
         }
         return null;

@@ -1,5 +1,6 @@
 package server;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import dataaccess.*;
@@ -9,9 +10,11 @@ import io.javalin.http.Context;
 import io.javalin.websocket.WsCloseContext;
 import io.javalin.websocket.WsConnectContext;
 import io.javalin.websocket.WsMessageContext;
+import models.GameData;
 import org.jetbrains.annotations.NotNull;
 import requests.*;
 import response.CreateGameResponse;
+import response.GetGameResponse;
 import response.ListGamesResponse;
 import response.LoginResponse;
 import server.websocket.ConnectionManager;
@@ -20,6 +23,8 @@ import service.GameService;
 import service.UserService;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ServerMessage;
+
+import java.io.IOException;
 
 public class Server {
 
@@ -127,20 +132,41 @@ public class Server {
     private void handleMessage(WsMessageContext wsMessageContext) {
         UserGameCommand command = serializer.fromJson(wsMessageContext.message(),
                 UserGameCommand.class);
-        switch (command.getCommandType()) {
-            case CONNECT -> {
-                connections.add(wsMessageContext.session);
+        try {
+            switch (command.getCommandType()) {
+                case CONNECT -> {
+                    try {
+                        GetGameResponse getGameResponse = gameService.getGame(command.getGameID()
+                                , command.getAuthToken());
+                        GameData gameData = getGameResponse.game();
+                        connections.add(wsMessageContext.session);
+                        connections.send(new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, gameData.game()), wsMessageContext.session);
+                        String message = getGameResponse.username() + " joined as " +
+                                         switch (getGameResponse.playerColor()) {
+                                             case WHITE -> "White.";
+                                             case BLACK -> "Black.";
+                                         };
+                        connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message), wsMessageContext.session);
+                    } catch (ResponseException e) {
+                        connections.send(new ServerMessage(ServerMessage.ServerMessageType.ERROR,
+                                "Error: Failed to connect."), wsMessageContext.session);
+                    }
+                }
+                case MAKE_MOVE -> {
+                    connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, (ChessGame) null), null);
+                    connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, ""), wsMessageContext.session);
+                }
+                case LEAVE -> {
+                    connections.remove(wsMessageContext.session);
+                    connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, ""), wsMessageContext.session);
+                }
+                case RESIGN -> {
+                    connections.remove(wsMessageContext.session);
+                    connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, ""), null);
+                }
             }
-            case MAKE_MOVE -> {
-//                        connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType
-//                        .LOAD_GAME),);
-            }
-            case LEAVE -> {
-                connections.remove(wsMessageContext.session);
-            }
-            case RESIGN -> {
-                connections.remove(wsMessageContext.session);
-            }
+        } catch (IOException | DataAccessException e) {
+            e.printStackTrace();
         }
     }
 
