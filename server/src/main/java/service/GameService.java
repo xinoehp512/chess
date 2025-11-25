@@ -126,6 +126,17 @@ public class GameService {
         gameDAO.updateGame(gameData.replaceGame(game));
     }
 
+    public void leaveGame(UserGameCommand command) throws ResponseException, DataAccessException {
+        AuthData auth = verifyAuth(command.getAuthToken());
+        GameData gameData = getGameData(command.getGameID());
+
+        ChessGame.TeamColor playerColor = gameData.getColorByUsername(auth.username());
+        if (playerColor == null) {
+            return;
+        }
+        gameDAO.updateGame(gameData.removePlayer(playerColor));
+    }
+
     private GameData getGameData(Integer gameID) throws ResponseException, DataAccessException {
         GameData game = gameDAO.getGame(gameID);
         if (game == null) {

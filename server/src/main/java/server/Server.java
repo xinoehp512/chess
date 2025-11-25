@@ -157,13 +157,13 @@ public class Server {
                         }
                     }
                     case LEAVE -> {
+                        gameService.leaveGame(command);
                         connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, ""), wsMessageContext.session);
                         connections.remove(wsMessageContext.session);
                     }
                     case RESIGN -> {
                         gameService.resignGame(command);
                         connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, ""), null);
-                        connections.remove(wsMessageContext.session);
                     }
                 }
             } catch (ResponseException e) {

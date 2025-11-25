@@ -36,4 +36,8 @@ public record GameData(int gameID, String whiteUsername, String blackUsername, S
         }
         return null;
     }
+
+    public GameData removePlayer(ChessGame.TeamColor color) {
+        return addColor(color, null);
+    }
 }
