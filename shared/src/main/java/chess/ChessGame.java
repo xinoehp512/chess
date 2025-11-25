@@ -12,6 +12,7 @@ public class ChessGame {
 
     private TeamColor currentTurn = TeamColor.WHITE;
     private ChessBoard board = new ChessBoard();
+    private boolean gameOver = false;
 
     public ChessGame() {
         board.resetBoard();
@@ -159,6 +160,23 @@ public class ChessGame {
     public boolean isInStalemate(TeamColor teamColor) {
         return !board.isInCheck(teamColor) && board.validMoves(teamColor).isEmpty();
     }
+
+    /**
+     * Determines if the game is over.
+     *
+     * @return True if the game is over.
+     */
+    public boolean isOver() {
+        return gameOver;
+    }
+
+    /**
+     * Ends the game.
+     */
+    public void endGame() {
+        gameOver = true;
+    }
+
 
     /**
      * Sets this game's chessboard with a given board

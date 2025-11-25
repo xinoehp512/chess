@@ -3,6 +3,7 @@ package service;
 
 import chess.ChessGame;
 import chess.ChessMove;
+import chess.InvalidMoveException;
 import dataaccess.AuthDAO;
 import dataaccess.DataAccessException;
 import dataaccess.GameDAO;
@@ -77,19 +78,43 @@ public class GameService {
     public MakeMoveResponse makeMove(UserGameCommand command) throws ResponseException,
             DataAccessException {
         var auth = verifyAuth(command.getAuthToken());
-        GameData game = getGameData(command.getGameID());
+        GameData gameData = getGameData(command.getGameID());
+
         ChessGame.TeamColor playerColor = null;
-        if (Objects.equals(auth.username(), game.whiteUsername())) {
+        if (Objects.equals(auth.username(), gameData.whiteUsername())) {
             playerColor = ChessGame.TeamColor.WHITE;
-        } else if (Objects.equals(auth.username(), game.blackUsername())) {
+        } else if (Objects.equals(auth.username(), gameData.blackUsername())) {
             playerColor = ChessGame.TeamColor.BLACK;
         }
         if (playerColor == null) {
             throw new ResponseException("Error: can't move as an observer.", 400);
         }
+        ChessGame game = gameData.game();
+        if (game.isOver()) {
+            throw new ResponseException("Error: can't move when game is over.", 400);
+        }
+
         ChessMove move = command.getMove();
+        try {
+            game.makeMove(move);
+        } catch (InvalidMoveException e) {
+            throw new ResponseException("Error: illegal move.", 400);
+        }
+        gameDAO.updateGame(gameData.updateGame(game));
+
+
+        boolean stalemate = game.isInStalemate(ChessGame.otherTeam(playerColor));
+        boolean checkmate = game.isInCheckmate(ChessGame.otherTeam(playerColor));
+        boolean check = game.isInCheck(ChessGame.otherTeam(playerColor));
+        if (stalemate || checkmate) {
+            game.endGame();
+        }
+
+        String notification = checkmate ? "Checkmate!" : (stalemate ? "Stalemate!" : (check ?
+                "Check!" : null));
+
         String moveStr = move.toString();
-        return new MakeMoveResponse(game.game(), playerColor, auth.username(), moveStr);
+        return new MakeMoveResponse(game, playerColor, auth.username(), moveStr, notification);
     }
 
     private GameData getGameData(Integer gameID) throws ResponseException, DataAccessException {

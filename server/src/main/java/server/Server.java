@@ -151,6 +151,10 @@ public class Server {
                         connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
                                 makeMoveResponse.username() + " moved " +
                                 makeMoveResponse.moveStr()), wsMessageContext.session);
+                        var notification = makeMoveResponse.notification();
+                        if (notification != null) {
+                            connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, notification), null);
+                        }
                     }
                     case LEAVE -> {
                         connections.remove(wsMessageContext.session);
