@@ -13,10 +13,7 @@ import io.javalin.websocket.WsMessageContext;
 import models.GameData;
 import org.jetbrains.annotations.NotNull;
 import requests.*;
-import response.CreateGameResponse;
-import response.GetGameResponse;
-import response.ListGamesResponse;
-import response.LoginResponse;
+import response.*;
 import server.websocket.ConnectionManager;
 import service.AdminService;
 import service.GameService;
@@ -133,37 +130,40 @@ public class Server {
         UserGameCommand command = serializer.fromJson(wsMessageContext.message(),
                 UserGameCommand.class);
         try {
-            switch (command.getCommandType()) {
-                case CONNECT -> {
-                    try {
-                        GetGameResponse getGameResponse = gameService.getGame(command.getGameID()
-                                , command.getAuthToken());
-                        GameData gameData = getGameResponse.game();
+            try {
+                switch (command.getCommandType()) {
+                    case CONNECT -> {
+                        GetGameResponse getGameResponse = gameService.getGame(command);
                         connections.add(wsMessageContext.session);
-                        connections.send(new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, gameData.game()), wsMessageContext.session);
+                        connections.send(new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, getGameResponse.game()), wsMessageContext.session);
                         String message = getGameResponse.username() + " joined as " +
                                          switch (getGameResponse.playerColor()) {
                                              case WHITE -> "White.";
                                              case BLACK -> "Black.";
+                                             case null -> "an observer.";
                                          };
                         connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message), wsMessageContext.session);
-                    } catch (ResponseException e) {
-                        connections.send(new ServerMessage(ServerMessage.ServerMessageType.ERROR,
-                                "Error: Failed to connect."), wsMessageContext.session);
+
+                    }
+                    case MAKE_MOVE -> {
+                        MakeMoveResponse makeMoveResponse = gameService.makeMove(command);
+                        connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, makeMoveResponse.game()), null);
+                        connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
+                                makeMoveResponse.username() + " moved " +
+                                makeMoveResponse.moveStr()), wsMessageContext.session);
+                    }
+                    case LEAVE -> {
+                        connections.remove(wsMessageContext.session);
+                        connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, ""), wsMessageContext.session);
+                    }
+                    case RESIGN -> {
+                        connections.remove(wsMessageContext.session);
+                        connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, ""), null);
                     }
                 }
-                case MAKE_MOVE -> {
-                    connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, (ChessGame) null), null);
-                    connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, ""), wsMessageContext.session);
-                }
-                case LEAVE -> {
-                    connections.remove(wsMessageContext.session);
-                    connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, ""), wsMessageContext.session);
-                }
-                case RESIGN -> {
-                    connections.remove(wsMessageContext.session);
-                    connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, ""), null);
-                }
+            } catch (ResponseException e) {
+                connections.send(new ServerMessage(ServerMessage.ServerMessageType.ERROR,
+                        e.getMessage()), wsMessageContext.session);
             }
         } catch (IOException | DataAccessException e) {
             e.printStackTrace();

@@ -2,6 +2,7 @@ package service;
 
 
 import chess.ChessGame;
+import chess.ChessMove;
 import dataaccess.AuthDAO;
 import dataaccess.DataAccessException;
 import dataaccess.GameDAO;
@@ -13,6 +14,8 @@ import exception.ResponseException;
 import response.CreateGameResponse;
 import response.GetGameResponse;
 import response.ListGamesResponse;
+import response.MakeMoveResponse;
+import websocket.commands.UserGameCommand;
 
 import java.util.List;
 import java.util.Objects;
@@ -48,10 +51,7 @@ public class GameService {
     public void joinGame(JoinGameRequest joinGameRequest, String authToken) throws ResponseException, DataAccessException {
         joinGameRequest.assertGood();
         var auth = verifyAuth(authToken);
-        GameData game = gameDAO.getGame(joinGameRequest.gameID());
-        if (game == null) {
-            throw new ResponseException("Error: bad request", 400);
-        }
+        GameData game = getGameData(joinGameRequest.gameID());
         GameData updatedGame = addPlayer(game, auth.username(), joinGameRequest.playerColor());
         try {
             gameDAO.updateGame(updatedGame);
@@ -60,13 +60,10 @@ public class GameService {
         }
     }
 
-    public GetGameResponse getGame(int gameID, String authToken) throws ResponseException
-            , DataAccessException {
-        var auth = verifyAuth(authToken);
-        GameData game = gameDAO.getGame(gameID);
-        if (game == null) {
-            throw new ResponseException("Error: bad request", 400);
-        }
+    public GetGameResponse getGame(UserGameCommand command) throws ResponseException,
+            DataAccessException {
+        var auth = verifyAuth(command.getAuthToken());
+        GameData game = getGameData(command.getGameID());
         ChessGame.TeamColor playerColor = null;
         if (Objects.equals(auth.username(), game.whiteUsername())) {
             playerColor = ChessGame.TeamColor.WHITE;
@@ -74,7 +71,33 @@ public class GameService {
             playerColor = ChessGame.TeamColor.BLACK;
         }
 
-        return new GetGameResponse(game, playerColor, auth.username());
+        return new GetGameResponse(game.game(), playerColor, auth.username());
+    }
+
+    public MakeMoveResponse makeMove(UserGameCommand command) throws ResponseException,
+            DataAccessException {
+        var auth = verifyAuth(command.getAuthToken());
+        GameData game = getGameData(command.getGameID());
+        ChessGame.TeamColor playerColor = null;
+        if (Objects.equals(auth.username(), game.whiteUsername())) {
+            playerColor = ChessGame.TeamColor.WHITE;
+        } else if (Objects.equals(auth.username(), game.blackUsername())) {
+            playerColor = ChessGame.TeamColor.BLACK;
+        }
+        if (playerColor == null) {
+            throw new ResponseException("Error: can't move as an observer.", 400);
+        }
+        ChessMove move = command.getMove();
+        String moveStr = move.toString();
+        return new MakeMoveResponse(game.game(), playerColor, auth.username(), moveStr);
+    }
+
+    private GameData getGameData(Integer gameID) throws ResponseException, DataAccessException {
+        GameData game = gameDAO.getGame(gameID);
+        if (game == null) {
+            throw new ResponseException("Error: bad request", 400);
+        }
+        return game;
     }
 
     private GameData addPlayer(GameData game, String username, String playerColor) throws ResponseException {
@@ -98,5 +121,4 @@ public class GameService {
         }
         return auth;
     }
-
 }
