@@ -2,7 +2,10 @@ package models;
 
 import chess.ChessGame;
 
-public record GameData(int gameID, String whiteUsername, String blackUsername, String gameName, ChessGame game) {
+import java.util.Objects;
+
+public record GameData(int gameID, String whiteUsername, String blackUsername, String gameName,
+                       ChessGame game) {
     public String getUsernameByColor(ChessGame.TeamColor color) {
         return switch (color) {
             case WHITE -> whiteUsername;
@@ -21,7 +24,16 @@ public record GameData(int gameID, String whiteUsername, String blackUsername, S
         return new GameData(gameID, whiteUsername, blackUsername, gameName, game);
     }
 
-    public GameData updateGame(ChessGame game) {
+    public GameData replaceGame(ChessGame game) {
         return new GameData(gameID, whiteUsername, blackUsername, gameName, game);
+    }
+
+    public ChessGame.TeamColor getColorByUsername(String username) {
+        if (Objects.equals(username, whiteUsername)) {
+            return ChessGame.TeamColor.WHITE;
+        } else if (Objects.equals(username, blackUsername)) {
+            return ChessGame.TeamColor.BLACK;
+        }
+        return null;
     }
 }

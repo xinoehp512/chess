@@ -19,7 +19,6 @@ import response.MakeMoveResponse;
 import websocket.commands.UserGameCommand;
 
 import java.util.List;
-import java.util.Objects;
 
 public class GameService {
     private final GameDAO gameDAO;
@@ -63,29 +62,20 @@ public class GameService {
 
     public GetGameResponse getGame(UserGameCommand command) throws ResponseException,
             DataAccessException {
-        var auth = verifyAuth(command.getAuthToken());
-        GameData game = getGameData(command.getGameID());
-        ChessGame.TeamColor playerColor = null;
-        if (Objects.equals(auth.username(), game.whiteUsername())) {
-            playerColor = ChessGame.TeamColor.WHITE;
-        } else if (Objects.equals(auth.username(), game.blackUsername())) {
-            playerColor = ChessGame.TeamColor.BLACK;
-        }
+        AuthData auth = verifyAuth(command.getAuthToken());
+        GameData gameData = getGameData(command.getGameID());
+        ChessGame.TeamColor playerColor = gameData.getColorByUsername(auth.username());
 
-        return new GetGameResponse(game.game(), playerColor, auth.username());
+        return new GetGameResponse(gameData.game(), playerColor, auth.username());
     }
 
     public MakeMoveResponse makeMove(UserGameCommand command) throws ResponseException,
             DataAccessException {
-        var auth = verifyAuth(command.getAuthToken());
+        AuthData auth = verifyAuth(command.getAuthToken());
         GameData gameData = getGameData(command.getGameID());
 
-        ChessGame.TeamColor playerColor = null;
-        if (Objects.equals(auth.username(), gameData.whiteUsername())) {
-            playerColor = ChessGame.TeamColor.WHITE;
-        } else if (Objects.equals(auth.username(), gameData.blackUsername())) {
-            playerColor = ChessGame.TeamColor.BLACK;
-        }
+        ChessGame.TeamColor playerColor = gameData.getColorByUsername(auth.username());
+
         if (playerColor == null) {
             throw new ResponseException("Error: can't move as an observer.", 400);
         }
@@ -103,9 +93,6 @@ public class GameService {
         } catch (InvalidMoveException e) {
             throw new ResponseException("Error: illegal move.", 400);
         }
-        gameDAO.updateGame(gameData.updateGame(game));
-
-
         boolean stalemate = game.isInStalemate(ChessGame.otherTeam(playerColor));
         boolean checkmate = game.isInCheckmate(ChessGame.otherTeam(playerColor));
         boolean check = game.isInCheck(ChessGame.otherTeam(playerColor));
@@ -113,11 +100,30 @@ public class GameService {
             game.endGame();
         }
 
+        gameDAO.updateGame(gameData.replaceGame(game));
+
         String notification = checkmate ? "Checkmate!" : (stalemate ? "Stalemate!" : (check ?
                 "Check!" : null));
 
         String moveStr = move.toString();
         return new MakeMoveResponse(game, playerColor, auth.username(), moveStr, notification);
+    }
+
+    public void resignGame(UserGameCommand command) throws ResponseException, DataAccessException {
+        AuthData auth = verifyAuth(command.getAuthToken());
+        GameData gameData = getGameData(command.getGameID());
+
+        ChessGame.TeamColor playerColor = gameData.getColorByUsername(auth.username());
+        if (playerColor == null) {
+            throw new ResponseException("Error: can't resign as an observer.", 400);
+        }
+        ChessGame game = gameData.game();
+        if (game.isOver()) {
+            throw new ResponseException("Error: can't resign when game is over.", 400);
+        }
+
+        game.endGame();
+        gameDAO.updateGame(gameData.replaceGame(game));
     }
 
     private GameData getGameData(Integer gameID) throws ResponseException, DataAccessException {

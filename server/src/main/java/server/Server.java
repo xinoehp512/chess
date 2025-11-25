@@ -161,6 +161,7 @@ public class Server {
                         connections.remove(wsMessageContext.session);
                     }
                     case RESIGN -> {
+                        gameService.resignGame(command);
                         connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, ""), null);
                         connections.remove(wsMessageContext.session);
                     }
