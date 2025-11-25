@@ -157,12 +157,12 @@ public class Server {
                         }
                     }
                     case LEAVE -> {
-                        connections.remove(wsMessageContext.session);
                         connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, ""), wsMessageContext.session);
+                        connections.remove(wsMessageContext.session);
                     }
                     case RESIGN -> {
-                        connections.remove(wsMessageContext.session);
                         connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, ""), null);
+                        connections.remove(wsMessageContext.session);
                     }
                 }
             } catch (ResponseException e) {
