@@ -10,7 +10,6 @@ import io.javalin.http.Context;
 import io.javalin.websocket.WsCloseContext;
 import io.javalin.websocket.WsConnectContext;
 import io.javalin.websocket.WsMessageContext;
-import models.GameData;
 import org.jetbrains.annotations.NotNull;
 import requests.*;
 import response.*;
@@ -133,7 +132,7 @@ public class Server {
             try {
                 switch (command.getCommandType()) {
                     case CONNECT -> {
-                        GetGameResponse getGameResponse = gameService.getGame(command);
+                        WebSocketResponse getGameResponse = gameService.enterGame(command);
                         connections.add(wsMessageContext.session);
                         connections.send(new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, getGameResponse.game()), wsMessageContext.session);
                         String message = getGameResponse.username() + " joined as " +
@@ -146,24 +145,33 @@ public class Server {
 
                     }
                     case MAKE_MOVE -> {
-                        MakeMoveResponse makeMoveResponse = gameService.makeMove(command);
+                        WebSocketResponse makeMoveResponse = gameService.makeMove(command);
                         connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, makeMoveResponse.game()), null);
-                        connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
-                                makeMoveResponse.username() + " moved " +
-                                makeMoveResponse.moveStr()), wsMessageContext.session);
-                        var notification = makeMoveResponse.notification();
+
+                        String message = makeMoveResponse.username() + " moved " +
+                                         command.getMove().toString();
+                        connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message), wsMessageContext.session);
+                        String notification = switch (makeMoveResponse.game().getGameState()) {
+                            case CHECK -> "Check!";
+                            case CHECKMATE -> "Checkmate!";
+                            case STALEMATE -> "Stalemate!";
+                            case NONE -> null;
+                        };
                         if (notification != null) {
                             connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, notification), null);
                         }
                     }
                     case LEAVE -> {
-                        gameService.leaveGame(command);
-                        connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, ""), wsMessageContext.session);
+                        WebSocketResponse leaveGameResponse = gameService.leaveGame(command);
+                        connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
+                                leaveGameResponse.username() +
+                                " left the game."), wsMessageContext.session);
                         connections.remove(wsMessageContext.session);
                     }
                     case RESIGN -> {
-                        gameService.resignGame(command);
-                        connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, ""), null);
+                        WebSocketResponse resignGameResponse = gameService.resignGame(command);
+                        connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
+                                resignGameResponse.username() + " resigned."), null);
                     }
                 }
             } catch (ResponseException e) {

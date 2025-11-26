@@ -13,6 +13,7 @@ public class ChessGame {
     private TeamColor currentTurn = TeamColor.WHITE;
     private ChessBoard board = new ChessBoard();
     private boolean gameOver = false;
+    private GameState gameState = GameState.NONE;
 
     public ChessGame() {
         board.resetBoard();
@@ -39,6 +40,10 @@ public class ChessGame {
      */
     public enum TeamColor {
         WHITE, BLACK
+    }
+
+    public enum GameState {
+        CHECK, CHECKMATE, STALEMATE, NONE
     }
 
     public static TeamColor otherTeam(TeamColor team) {
@@ -125,8 +130,17 @@ public class ChessGame {
             }
         }
 
-
         currentTurn = otherTeam(currentTurn);
+        if (isInCheckmate(currentTurn)) {
+            gameState = GameState.CHECKMATE;
+        } else if (isInStalemate(currentTurn)) {
+            gameState = GameState.STALEMATE;
+        } else if (isInCheck(currentTurn)) {
+            gameState = GameState.CHECK;
+        }
+        if (gameState == GameState.CHECKMATE || gameState == GameState.STALEMATE) {
+            endGame();
+        }
     }
 
 
@@ -195,6 +209,12 @@ public class ChessGame {
     public ChessBoard getBoard() {
         return board;
     }
+
+
+    public GameState getGameState() {
+        return gameState;
+    }
+
 
     @Override
     public boolean equals(Object o) {

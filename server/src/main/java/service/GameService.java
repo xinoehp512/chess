@@ -12,10 +12,7 @@ import models.GameData;
 import requests.CreateGameRequest;
 import requests.JoinGameRequest;
 import exception.ResponseException;
-import response.CreateGameResponse;
-import response.GetGameResponse;
-import response.ListGamesResponse;
-import response.MakeMoveResponse;
+import response.*;
 import websocket.commands.UserGameCommand;
 
 import java.util.List;
@@ -60,16 +57,16 @@ public class GameService {
         }
     }
 
-    public GetGameResponse getGame(UserGameCommand command) throws ResponseException,
+    public WebSocketResponse enterGame(UserGameCommand command) throws ResponseException,
             DataAccessException {
         AuthData auth = verifyAuth(command.getAuthToken());
         GameData gameData = getGameData(command.getGameID());
         ChessGame.TeamColor playerColor = gameData.getColorByUsername(auth.username());
 
-        return new GetGameResponse(gameData.game(), playerColor, auth.username());
+        return new WebSocketResponse(gameData, auth);
     }
 
-    public MakeMoveResponse makeMove(UserGameCommand command) throws ResponseException,
+    public WebSocketResponse makeMove(UserGameCommand command) throws ResponseException,
             DataAccessException {
         AuthData auth = verifyAuth(command.getAuthToken());
         GameData gameData = getGameData(command.getGameID());
@@ -93,23 +90,15 @@ public class GameService {
         } catch (InvalidMoveException e) {
             throw new ResponseException("Error: illegal move.", 400);
         }
-        boolean stalemate = game.isInStalemate(ChessGame.otherTeam(playerColor));
-        boolean checkmate = game.isInCheckmate(ChessGame.otherTeam(playerColor));
-        boolean check = game.isInCheck(ChessGame.otherTeam(playerColor));
-        if (stalemate || checkmate) {
-            game.endGame();
-        }
 
-        gameDAO.updateGame(gameData.replaceGame(game));
+        gameData = gameData.replaceGame(game);
+        gameDAO.updateGame(gameData);
 
-        String notification = checkmate ? "Checkmate!" : (stalemate ? "Stalemate!" : (check ?
-                "Check!" : null));
-
-        String moveStr = move.toString();
-        return new MakeMoveResponse(game, playerColor, auth.username(), moveStr, notification);
+        return new WebSocketResponse(gameData, auth);
     }
 
-    public void resignGame(UserGameCommand command) throws ResponseException, DataAccessException {
+    public WebSocketResponse resignGame(UserGameCommand command) throws ResponseException,
+            DataAccessException {
         AuthData auth = verifyAuth(command.getAuthToken());
         GameData gameData = getGameData(command.getGameID());
 
@@ -123,18 +112,22 @@ public class GameService {
         }
 
         game.endGame();
-        gameDAO.updateGame(gameData.replaceGame(game));
+        gameData = gameData.replaceGame(game);
+        gameDAO.updateGame(gameData);
+        return new WebSocketResponse(gameData, auth);
     }
 
-    public void leaveGame(UserGameCommand command) throws ResponseException, DataAccessException {
+    public WebSocketResponse leaveGame(UserGameCommand command) throws ResponseException,
+            DataAccessException {
         AuthData auth = verifyAuth(command.getAuthToken());
         GameData gameData = getGameData(command.getGameID());
 
         ChessGame.TeamColor playerColor = gameData.getColorByUsername(auth.username());
-        if (playerColor == null) {
-            return;
+        if (playerColor != null) {
+            gameData = gameData.removePlayer(playerColor);
+            gameDAO.updateGame(gameData);
         }
-        gameDAO.updateGame(gameData.removePlayer(playerColor));
+        return new WebSocketResponse(gameData, auth);
     }
 
     private GameData getGameData(Integer gameID) throws ResponseException, DataAccessException {
