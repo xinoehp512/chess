@@ -1,6 +1,5 @@
 package server;
 
-import chess.ChessGame;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import dataaccess.*;
@@ -132,46 +131,50 @@ public class Server {
             try {
                 switch (command.getCommandType()) {
                     case CONNECT -> {
-                        WebSocketResponse getGameResponse = gameService.enterGame(command);
-                        connections.add(wsMessageContext.session);
-                        connections.send(new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, getGameResponse.game()), wsMessageContext.session);
-                        String message = getGameResponse.username() + " joined as " +
-                                         switch (getGameResponse.playerColor()) {
+                        WebSocketResponse response = gameService.enterGame(command);
+                        int gameID = response.gameID();
+                        connections.add(gameID, wsMessageContext.session);
+                        connections.send(new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, response.game()), wsMessageContext.session);
+                        String message = response.username() + " joined as " +
+                                         switch (response.playerColor()) {
                                              case WHITE -> "White.";
                                              case BLACK -> "Black.";
                                              case null -> "an observer.";
                                          };
-                        connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message), wsMessageContext.session);
+                        connections.broadcast(gameID,
+                                new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message), wsMessageContext.session);
 
                     }
                     case MAKE_MOVE -> {
-                        WebSocketResponse makeMoveResponse = gameService.makeMove(command);
-                        connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, makeMoveResponse.game()), null);
+                        WebSocketResponse response = gameService.makeMove(command);
+                        int gameID = response.gameID();
+                        connections.broadcast(gameID,new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, response.game()), null);
 
-                        String message = makeMoveResponse.username() + " moved " +
-                                         command.getMove().toString();
-                        connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message), wsMessageContext.session);
-                        String notification = switch (makeMoveResponse.game().getGameState()) {
+                        String message =
+                                response.username() + " moved " + command.getMove().toString();
+                        connections.broadcast(gameID,new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message), wsMessageContext.session);
+                        String notification = switch (response.game().getGameState()) {
                             case CHECK -> "Check!";
                             case CHECKMATE -> "Checkmate!";
                             case STALEMATE -> "Stalemate!";
                             case NONE -> null;
                         };
                         if (notification != null) {
-                            connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, notification), null);
+                            connections.broadcast(gameID,new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, notification), null);
                         }
                     }
                     case LEAVE -> {
-                        WebSocketResponse leaveGameResponse = gameService.leaveGame(command);
-                        connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
-                                leaveGameResponse.username() +
-                                " left the game."), wsMessageContext.session);
-                        connections.remove(wsMessageContext.session);
+                        WebSocketResponse response = gameService.leaveGame(command);
+                        int gameID = response.gameID();
+                        connections.broadcast(gameID,new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
+                                response.username() + " left the game."), wsMessageContext.session);
+                        connections.remove(gameID,wsMessageContext.session);
                     }
                     case RESIGN -> {
-                        WebSocketResponse resignGameResponse = gameService.resignGame(command);
-                        connections.broadcast(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
-                                resignGameResponse.username() + " resigned."), null);
+                        WebSocketResponse response = gameService.resignGame(command);
+                        int gameID = response.gameID();
+                        connections.broadcast(gameID,new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
+                                response.username() + " resigned."), null);
                     }
                 }
             } catch (ResponseException e) {

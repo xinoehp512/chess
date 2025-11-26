@@ -16,4 +16,8 @@ public record WebSocketResponse(GameData gameData, AuthData auth) {
     public ChessGame.TeamColor playerColor() {
         return gameData.getColorByUsername(auth.username());
     }
+
+    public int gameID() {
+        return gameData.gameID();
+    }
 }

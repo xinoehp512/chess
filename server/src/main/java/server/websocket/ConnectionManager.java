@@ -6,20 +6,24 @@ import websocket.messages.ServerMessage;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ConnectionManager {
-    public final Set<Session> connections =
-            Collections.newSetFromMap(new ConcurrentHashMap<Session, Boolean>());
+    public final ConcurrentHashMap<Integer, Set<Session>> connections = new ConcurrentHashMap<>();
 
 
-    public void add(Session session) {
-        connections.add(session);
+    public void add(int gameID, Session session) {
+        connections.putIfAbsent(gameID, new HashSet<>());
+        connections.get(gameID).add(session);
     }
 
-    public void remove(Session session) {
-        connections.remove(session);
+    public void remove(int gameID, Session session) {
+        if (!connections.containsKey(gameID)) {
+            return;
+        }
+        connections.get(gameID).remove(session);
     }
 
     public void send(ServerMessage serverMessage, Session session) throws IOException {
@@ -29,8 +33,8 @@ public class ConnectionManager {
         }
     }
 
-    public void broadcast(ServerMessage serverMessage, Session excludeSession) throws IOException {
-        for (var session : connections) {
+    public void broadcast(int gameID, ServerMessage serverMessage, Session excludeSession) throws IOException {
+        for (var session : connections.get(gameID)) {
             if (session.equals(excludeSession)) {
                 continue;
             }
