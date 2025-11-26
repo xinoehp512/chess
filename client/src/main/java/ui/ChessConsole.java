@@ -12,7 +12,7 @@ import java.util.Scanner;
 
 import static ui.EscapeSequences.*;
 
-public class ChessConsole implements ChessUI{
+public class ChessConsole implements ChessUI {
 
 
     private final ChessClient client;
@@ -56,6 +56,15 @@ public class ChessConsole implements ChessUI{
                       quit - playing chess
                       help - with possible commands
                     """;
+            case GAMEPLAY -> """ 
+                      Squares are input <FILE><RANK>, e.g a1, e4.
+                      redraw - the chess board
+                      highlight <SQUARE> - legal moves
+                      move <START_SQUARE> <END_SQUARE> - a piece
+                      leave - the game
+                      resign - the game
+                      help - with possible commands
+                    """;
         };
     }
 
@@ -67,6 +76,7 @@ public class ChessConsole implements ChessUI{
             return switch (client.getState()) {
                 case AUTHENTICATED -> evalAuthenticated(cmd, params);
                 case UNAUTHENTICATED -> evalUnauthenticated(cmd, params);
+                case GAMEPLAY -> evalGameplay(cmd, params);
             };
         } catch (ResponseException ex) {
             return ex.getMessage();
@@ -85,6 +95,10 @@ public class ChessConsole implements ChessUI{
             case "logout" -> client.logout();
             case "help" -> help();
             case "quit" -> "quit";
+            case "register", "login" ->
+                    throw new InputException("Can't use that command while logged in.");
+            case "redraw", "highlight", "move", "leave", "resign" ->
+                    throw new InputException("Can't use that command outside of a game.");
             default -> throw new InputException("Unknown command " + cmd);
         };
     }
@@ -96,17 +110,34 @@ public class ChessConsole implements ChessUI{
             case "login" -> client.login(params);
             case "help" -> help();
             case "quit" -> "quit";
+            case "redraw", "highlight", "move", "leave", "resign" ->
+                    throw new InputException("Can't use that command outside of a game.");
+            case "create", "list", "join", "observe", "logout" ->
+                    throw new InputException("Can't use that command while logged out.");
             default -> throw new InputException("Unknown command " + cmd);
         };
     }
 
+    private String evalGameplay(String cmd, String[] params) throws InputException {
+        return switch (cmd) {
+            case "redraw" -> redraw();
+            case "highlight" -> highlight(params);
+            case "move" -> client.move(params);
+            case "leave" -> client.leave();
+            case "resign" -> client.resign();
+            case "help" -> help();
+            case "register", "login" ->
+                    throw new InputException("Can't use that command while logged in.");
+            case "create", "list", "join", "observe", "logout", "quit" ->
+                    throw new InputException("Can't use that command while in a game.");
+            default -> throw new InputException("Unknown command " + cmd);
+        };
+    }
 
+    private String displayBoard() {
 
-
-    private String displayBoard(GameData gameData, String colorPerspectiveStr) {
-        TeamColor colorPerspective = colorPerspectiveStr.equals("WHITE") ? TeamColor.WHITE :
-                TeamColor.BLACK;
-        var board = gameData.game().getBoard().getBoard();
+        TeamColor colorPerspective = client.getUserColor();
+        var board = client.getCurrentGame().getBoard().getBoard();
         var boardStr = new StringBuilder();
 
         var edgeRow = " abcdefgh ";
@@ -171,10 +202,28 @@ public class ChessConsole implements ChessUI{
         return RESET_BG_COLOR + RESET_TEXT_COLOR;
     }
 
+    private String highlight(String[] params) throws InputException {
+        assertParamCount(params, 1);
+        return displayBoard();
+    }
+
+    private String redraw() {
+        return displayBoard();
+    }
+
     private void printPrompt() {
         System.out.printf(RESET_TEXT_COLOR + "\n[%s] >>> ", switch (client.getState()) {
             case AUTHENTICATED -> "LOGGED IN";
             case UNAUTHENTICATED -> "LOGGED OUT";
+            case GAMEPLAY -> "PLAYING";
         });
+    }
+
+    public static void assertParamCount(String[] params, int paramCount) throws InputException {
+        if (params.length != paramCount) {
+            var message = String.format("Command expected %d arguments, received %d.", paramCount
+                    , params.length);
+            throw new InputException(message);
+        }
     }
 }

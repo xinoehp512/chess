@@ -1,5 +1,6 @@
 package client;
 
+import chess.ChessGame;
 import exception.ResponseException;
 import models.GameData;
 import requests.CreateGameRequest;
@@ -11,17 +12,21 @@ import ui.ChessConsole;
 import ui.ChessUI;
 import ui.InputException;
 
+import static ui.ChessConsole.assertParamCount;
+
 public class ChessClient {
     private final ChessUI console;
     private final ServerFacade server;
 
     private String authToken = null;
 
+    private ChessGame currentGame;
+    private ChessGame.TeamColor userColor;
+
     private ConsoleState state = ConsoleState.UNAUTHENTICATED;
 
-
     public enum ConsoleState {
-        AUTHENTICATED, UNAUTHENTICATED
+        AUTHENTICATED, UNAUTHENTICATED, GAMEPLAY
     }
 
     public ChessClient(String serverURL) {
@@ -33,8 +38,12 @@ public class ChessClient {
         return state;
     }
 
-    public void setState(ConsoleState state) {
-        this.state = state;
+    public ChessGame getCurrentGame() {
+        return currentGame;
+    }
+
+    public ChessGame.TeamColor getUserColor() {
+        return userColor;
     }
 
     public void run() {
@@ -43,7 +52,6 @@ public class ChessClient {
 
     public String createGame(String[] params) throws ResponseException, InputException {
         assertParamCount(params, 1);
-        assertAuthState(ConsoleState.AUTHENTICATED);
         String name = params[0];
         var response = server.createGame(new CreateGameRequest(name), authToken);
         return "Successfully created game named " + name;
@@ -51,16 +59,16 @@ public class ChessClient {
 
     public String login(String[] params) throws ResponseException, InputException {
         assertParamCount(params, 2);
-        assertAuthState(ConsoleState.UNAUTHENTICATED);
         String username = params[0];
         String password = params[1];
         var response = server.login(new LoginRequest(username, password));
+        authToken = response.authToken();
+        state = ConsoleState.AUTHENTICATED;
         return "Logged in as " + response.username();
     }
 
     public String register(String[] params) throws ResponseException, InputException {
         assertParamCount(params, 3);
-        assertAuthState(ConsoleState.UNAUTHENTICATED);
         String username = params[0];
         String password = params[1];
         String email = params[2];
@@ -70,9 +78,7 @@ public class ChessClient {
         return "Logged in as " + response.username();
     }
 
-
     public String logout() throws ResponseException, InputException {
-        assertAuthState(ConsoleState.AUTHENTICATED);
         server.logout(authToken);
         authToken = null;
         state = ConsoleState.UNAUTHENTICATED;
@@ -81,10 +87,10 @@ public class ChessClient {
 
     public String observe(String[] params) throws ResponseException, InputException {
         assertParamCount(params, 1);
-        assertAuthState(ConsoleState.AUTHENTICATED);
         try {
             int listID = Integer.parseInt(params[0]);
             GameData game = getGameByListID(listID);
+            state = ConsoleState.GAMEPLAY;
             return String.format("Observing game %d.", listID);
 
         } catch (NumberFormatException e) {
@@ -94,7 +100,6 @@ public class ChessClient {
 
     public String joinGame(String[] params) throws ResponseException, InputException {
         assertParamCount(params, 2);
-        assertAuthState(ConsoleState.AUTHENTICATED);
         try {
             int listID = Integer.parseInt(params[0]);
             String color = params[1].toUpperCase();
@@ -103,6 +108,7 @@ public class ChessClient {
             }
             GameData game = getGameByListID(listID);
             server.joinGame(new JoinGameRequest(color, game.gameID()), authToken);
+            state = ConsoleState.GAMEPLAY;
             return String.format("Joined game %d.", listID);
 
         } catch (NumberFormatException e) {
@@ -119,7 +125,6 @@ public class ChessClient {
     }
 
     public String listGames() throws ResponseException, InputException {
-        assertAuthState(ConsoleState.AUTHENTICATED);
         var gameDataList = server.listGames(authToken).games();
         var gameList = new StringBuilder();
         for (int i = 0; i < gameDataList.size(); i++) {
@@ -136,22 +141,16 @@ public class ChessClient {
         return gameList.toString();
     }
 
-
-    private void assertParamCount(String[] params, int paramCount) throws InputException {
-        if (params.length != paramCount) {
-            var message = String.format("Command expected %d arguments, received %d.", paramCount
-                    , params.length);
-            throw new InputException(message);
-        }
+    public String move(String[] params) {
+        return "Piece moved.";
     }
 
-    private void assertAuthState(ConsoleState expectedState) throws InputException {
-        if (state != expectedState) {
-            var message = "Can't execute that command while " + switch (state) {
-                case AUTHENTICATED -> "logged in.";
-                case UNAUTHENTICATED -> "logged out.";
-            };
-            throw new InputException(message);
-        }
+    public String leave() {
+        state = ConsoleState.AUTHENTICATED;
+        return "Left the game.";
+    }
+
+    public String resign() {
+        return "Resigned.";
     }
 }
