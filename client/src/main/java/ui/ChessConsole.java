@@ -1,13 +1,16 @@
 package ui;
 
 import chess.ChessGame.TeamColor;
+import chess.ChessMove;
 import chess.ChessPiece;
+import chess.ChessPosition;
 import client.ChessClient;
 import exception.ResponseException;
 import models.GameData;
 import websocket.messages.ServerMessage;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Scanner;
 
@@ -119,7 +122,8 @@ public class ChessConsole implements ChessUI {
         };
     }
 
-    private String evalGameplay(String cmd, String[] params) throws InputException, ResponseException {
+    private String evalGameplay(String cmd, String[] params) throws InputException,
+            ResponseException {
         return switch (cmd) {
             case "redraw" -> redraw();
             case "highlight" -> highlight(params);
@@ -136,9 +140,25 @@ public class ChessConsole implements ChessUI {
     }
 
     private String displayBoard() {
+        return displayBoard(null);
+    }
+
+    private String displayBoard(ChessPosition highlightedSquare) {
 
         TeamColor colorPerspective = client.getUserColor();
-        var board = client.getCurrentGame().getBoard().getBoard();
+        var game = client.getCurrentGame();
+        var board = game.getBoard().getBoard();
+
+        var legalMoveSquares = new HashSet<ChessPosition>();
+        if (highlightedSquare != null) {
+            var legalMoves = game.validMoves(highlightedSquare);
+            if (legalMoves != null) {
+                for (var move : legalMoves) {
+                    legalMoveSquares.add(move.getEndPosition());
+                }
+            }
+        }
+
         var boardStr = new StringBuilder();
 
         var edgeRow = " abcdefgh ";
@@ -146,6 +166,9 @@ public class ChessConsole implements ChessUI {
 
         String whiteTileColor = SET_BG_COLOR_LIGHT_GREEN;
         String blackTileColor = SET_BG_COLOR_DARK_GREEN;
+
+        String whiteHighlightColor = SET_BG_COLOR_BLUE;
+        String blackHiglightColor = SET_BG_COLOR_RED;
 
         String whitePieceColor = SET_TEXT_COLOR_WHITE;
         String blackPieceColor = SET_TEXT_COLOR_BLACK;
@@ -173,6 +196,15 @@ public class ChessConsole implements ChessUI {
                 var colIdx = !reversed ? j : row.length - j - 1;
                 var bgColor = squareColor == TeamColor.WHITE ? whiteTileColor : blackTileColor;
                 squareColor = squareColor == TeamColor.WHITE ? TeamColor.BLACK : TeamColor.WHITE;
+
+                ChessPosition pos = Convert.toChessPosition(colIdx, rowIdx);
+                if (legalMoveSquares.contains(pos)) {
+                    bgColor = squareColor ==
+                              TeamColor.WHITE ? whiteHighlightColor : blackHiglightColor;
+                }
+                if (Objects.equals(pos, highlightedSquare)) {
+                    bgColor = SET_BG_COLOR_MAGENTA;
+                }
                 boardStr.append(bgColor);
 
                 ChessPiece chessPiece = row[colIdx];
@@ -205,7 +237,9 @@ public class ChessConsole implements ChessUI {
 
     private String highlight(String[] params) throws InputException {
         assertParamCount(params, 1);
-        return displayBoard();
+        String square = params[0];
+        ChessPosition highlightedPosition = posFromString(square);
+        return displayBoard(highlightedPosition);
     }
 
     private String redraw() {
@@ -247,6 +281,29 @@ public class ChessConsole implements ChessUI {
             var message = String.format("Command expected %d arguments, received %d.", paramCount
                     , params.length);
             throw new InputException(message);
+        }
+    }
+
+
+    public static ChessPosition posFromString(String square) throws InputException {
+        if (square.length() != 2) {
+            throw new InputException("Move " + square + " is invalid.");
+        }
+        char file = square.charAt(0);
+        char rank = square.charAt(1);
+        String files = "abcdefgh";
+        String ranks = "12345678";
+        int x = files.indexOf(file);
+        int y = ranks.indexOf(rank);
+        if (x < 0 || y < 0) {
+            throw new InputException("Move " + square + " is invalid.");
+        }
+        return Convert.toChessPosition(x, y);
+    }
+
+    private static class Convert {
+        static ChessPosition toChessPosition(int x, int y) {
+            return new ChessPosition(y + 1, x + 1);
         }
     }
 }
