@@ -2,14 +2,18 @@ package server;
 
 import com.google.gson.Gson;
 import exception.ResponseException;
+import jakarta.websocket.*;
 import models.GameData;
 import requests.*;
 import response.CreateGameResponse;
 import response.ListGamesResponse;
 import response.LoginResponse;
+import websocket.messages.ServerMessage;
 
+import java.io.IOException;
 import java.net.ConnectException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublisher;
@@ -18,9 +22,28 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.List;
 
-public class ServerFacade {
+public class ServerFacade extends Endpoint {
     private final HttpClient client = HttpClient.newHttpClient();
     private final String serverUrl;
+
+    private Session session;
+
+    public ServerFacade(String url, NotificationObserver notificationObserver) throws ResponseException {
+        serverUrl = url;
+
+        try {
+            URI webSocketURI = new URI(serverUrl.replace("http", "ws") + "/ws");
+            WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+            this.session = container.connectToServer(this, webSocketURI);
+
+            this.session.addMessageHandler((MessageHandler.Whole<String>) message -> {
+                ServerMessage serverMessage = new Gson().fromJson(message, ServerMessage.class);
+                notificationObserver.notify(serverMessage);
+            });
+        } catch (URISyntaxException | DeploymentException | IOException e) {
+            throw new ResponseException(e.getMessage(), 500);
+        }
+    }
 
     public ServerFacade(String url) {
         serverUrl = url;
@@ -122,5 +145,10 @@ public class ServerFacade {
 
     private boolean isSuccessful(int status) {
         return status / 100 == 2;
+    }
+
+    @Override
+    public void onOpen(Session session, EndpointConfig endpointConfig) {
+
     }
 }

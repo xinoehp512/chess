@@ -7,14 +7,16 @@ import requests.CreateGameRequest;
 import requests.JoinGameRequest;
 import requests.LoginRequest;
 import requests.RegisterRequest;
+import server.NotificationObserver;
 import server.ServerFacade;
 import ui.ChessConsole;
 import ui.ChessUI;
 import ui.InputException;
+import websocket.messages.ServerMessage;
 
 import static ui.ChessConsole.assertParamCount;
 
-public class ChessClient {
+public class ChessClient implements NotificationObserver {
     private final ChessUI console;
     private final ServerFacade server;
 
@@ -29,9 +31,9 @@ public class ChessClient {
         AUTHENTICATED, UNAUTHENTICATED, GAMEPLAY
     }
 
-    public ChessClient(String serverURL) {
+    public ChessClient(String serverURL) throws ResponseException {
         this.console = new ChessConsole(this);
-        server = new ServerFacade(serverURL);
+        server = new ServerFacade(serverURL,this);
     }
 
     public ConsoleState getState() {
@@ -89,7 +91,7 @@ public class ChessClient {
         assertParamCount(params, 1);
         try {
             int listID = Integer.parseInt(params[0]);
-            GameData game = getGameByListID(listID);
+            GameData gameData = getGameByListID(listID);
             state = ConsoleState.GAMEPLAY;
             return String.format("Observing game %d.", listID);
 
@@ -106,8 +108,8 @@ public class ChessClient {
             if (!color.equals("WHITE") && !color.equals("BLACK")) {
                 throw new InputException(color + " is not black or white.");
             }
-            GameData game = getGameByListID(listID);
-            server.joinGame(new JoinGameRequest(color, game.gameID()), authToken);
+            GameData gameData = getGameByListID(listID);
+            server.joinGame(new JoinGameRequest(color, gameData.gameID()), authToken);
             state = ConsoleState.GAMEPLAY;
             return String.format("Joined game %d.", listID);
 
@@ -152,5 +154,11 @@ public class ChessClient {
 
     public String resign() {
         return "Resigned.";
+    }
+
+
+    @Override
+    public void notify(ServerMessage serverMessage) {
+
     }
 }
