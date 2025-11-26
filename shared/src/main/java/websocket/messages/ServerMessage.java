@@ -11,10 +11,10 @@ import java.util.Objects;
  * methods.
  */
 public class ServerMessage {
-    final ServerMessageType serverMessageType;
-    final String errorMessage;
-    final String message;
-    final ChessGame game;
+    public final ServerMessageType serverMessageType;
+    public final String errorMessage;
+    public final String message;
+    public final ChessGame game;
 
 
     public enum ServerMessageType {
@@ -38,10 +38,6 @@ public class ServerMessage {
 
     public ServerMessageType getServerMessageType() {
         return this.serverMessageType;
-    }
-
-    public String getMessage() {
-        return this.message;
     }
 
     @Override

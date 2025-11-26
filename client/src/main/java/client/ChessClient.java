@@ -15,6 +15,7 @@ import ui.InputException;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ServerMessage;
 
+import static chess.ChessGame.parseColor;
 import static ui.ChessConsole.assertParamCount;
 
 public class ChessClient implements NotificationObserver {
@@ -93,8 +94,10 @@ public class ChessClient implements NotificationObserver {
         try {
             int listID = Integer.parseInt(params[0]);
             GameData gameData = getGameByListID(listID);
-            server.connect(gameData.gameID(),authToken);
+            server.connect(gameData.gameID(), authToken);
             state = ConsoleState.GAMEPLAY;
+            userColor = null;
+            currentGame = gameData.game();
             return String.format("Observing game %d.", listID);
 
         } catch (NumberFormatException e) {
@@ -112,8 +115,10 @@ public class ChessClient implements NotificationObserver {
             }
             GameData gameData = getGameByListID(listID);
             server.joinGame(new JoinGameRequest(color, gameData.gameID()), authToken);
-            server.connect(gameData.gameID(),authToken);
+            server.connect(gameData.gameID(), authToken);
             state = ConsoleState.GAMEPLAY;
+            userColor = parseColor(color);
+            currentGame = gameData.game();
             return String.format("Joined game %d.", listID);
 
         } catch (NumberFormatException e) {
@@ -152,6 +157,8 @@ public class ChessClient implements NotificationObserver {
 
     public String leave() {
         state = ConsoleState.AUTHENTICATED;
+        userColor = null;
+        currentGame = null;
         return "Left the game.";
     }
 
@@ -162,6 +169,17 @@ public class ChessClient implements NotificationObserver {
 
     @Override
     public void notify(ServerMessage serverMessage) {
-        console.notifyUser(serverMessage);
+        switch (serverMessage.getServerMessageType()) {
+            case LOAD_GAME -> {
+                currentGame = serverMessage.game;
+                console.showGame();
+            }
+            case ERROR -> {
+                console.showError(serverMessage.errorMessage);
+            }
+            case NOTIFICATION -> {
+                console.showNotification(serverMessage.message);
+            }
+        }
     }
 }

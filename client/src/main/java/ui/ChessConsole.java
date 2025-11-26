@@ -33,9 +33,9 @@ public class ChessConsole implements ChessUI {
             String line = scanner.nextLine();
             try {
                 result = eval(line);
-                System.out.print(SET_TEXT_COLOR_BLUE + result);
+                System.out.print(SET_TEXT_COLOR_BLUE + result + RESET_TEXT_COLOR + "\n");
             } catch (Exception e) {
-                System.out.print(e.toString());
+                System.out.print(SET_TEXT_COLOR_RED + e.toString() + RESET_TEXT_COLOR + "\n");
             }
         }
     }
@@ -213,16 +213,32 @@ public class ChessConsole implements ChessUI {
     }
 
     private void printPrompt() {
-        System.out.printf(RESET_TEXT_COLOR + "\n[%s] >>> ", switch (client.getState()) {
+        System.out.printf("[%s] >>> ", switch (client.getState()) {
             case AUTHENTICATED -> "LOGGED IN";
             case UNAUTHENTICATED -> "LOGGED OUT";
             case GAMEPLAY -> "PLAYING";
         });
     }
 
+
     @Override
-    public void notifyUser(ServerMessage serverMessage) {
-        System.out.println(serverMessage.getMessage());
+    public void showGame() {
+        System.out.println();
+        System.out.print(displayBoard() + RESET_TEXT_COLOR);
+        System.out.println();
+        printPrompt();
+    }
+
+    @Override
+    public void showError(String errorMessage) {
+        System.out.println(errorMessage);
+        printPrompt();
+    }
+
+    @Override
+    public void showNotification(String message) {
+        System.out.println(message);
+        printPrompt();
     }
 
 

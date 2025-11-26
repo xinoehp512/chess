@@ -42,6 +42,14 @@ public class ChessGame {
         WHITE, BLACK
     }
 
+    public static TeamColor parseColor(String color) {
+        return switch (color.toUpperCase()) {
+            case "BLACK" -> ChessGame.TeamColor.BLACK;
+            case "WHITE" -> ChessGame.TeamColor.WHITE;
+            default -> throw new IllegalStateException("Unexpected value: " + color);
+        };
+    }
+
     public enum GameState {
         CHECK, CHECKMATE, STALEMATE, NONE
     }
