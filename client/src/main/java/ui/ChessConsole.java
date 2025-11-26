@@ -17,9 +17,15 @@ import java.util.Scanner;
 import static ui.EscapeSequences.*;
 
 public class ChessConsole {
-    private boolean isAuthenticated = false;
+
+
+    private ConsoleState state = ConsoleState.UNAUTHENTICATED;
     private String authToken = null;
     private final ServerFacade server;
+
+    public enum ConsoleState {
+        AUTHENTICATED, UNAUTHENTICATED, GAMEPLAY
+    }
 
     public ChessConsole(String serverURL) {
         server = new ServerFacade(serverURL);
@@ -44,8 +50,8 @@ public class ChessConsole {
     }
 
     private String help() {
-        if (isAuthenticated) {
-            return """
+        return switch (state) {
+            case AUTHENTICATED -> """
                       create <NAME> - a game
                       list - games
                       join <ID> [WHITE|BLACK] - a game
@@ -54,14 +60,14 @@ public class ChessConsole {
                       quit - playing chess
                       help - with possible commands
                     """;
-        } else {
-            return """
+            case UNAUTHENTICATED -> """
                       register - <USERNAME> <PASSWORD> <EMAIL> - to create an account
                       login - <USERNAME> <PASSWORD> - to play chess
                       quit - playing chess
                       help - with possible commands
                     """;
-        }
+            case GAMEPLAY -> "null";
+        };
     }
 
     private String eval(String command) {
@@ -69,17 +75,10 @@ public class ChessConsole {
             String[] tokens = command.toLowerCase().split(" ");
             String cmd = (tokens.length > 0) ? tokens[0] : "help";
             String[] params = Arrays.copyOfRange(tokens, 1, tokens.length);
-            return switch (cmd) {
-                case "register" -> register(params);
-                case "login" -> login(params);
-                case "create" -> createGame(params);
-                case "list" -> listGames();
-                case "join" -> joinGame(params);
-                case "observe" -> observe(params);
-                case "logout" -> logout();
-                case "help" -> help();
-                case "quit" -> "quit";
-                default -> help();
+            return switch (state) {
+                case AUTHENTICATED -> evalAuthenticated(cmd, params);
+                case UNAUTHENTICATED -> evalUnauthenticated(cmd, params);
+                case GAMEPLAY -> null;
             };
         } catch (ResponseException ex) {
             return ex.getMessage();
@@ -88,17 +87,43 @@ public class ChessConsole {
         }
     }
 
+    private String evalAuthenticated(String cmd, String[] params) throws ResponseException,
+            InputException {
+        return switch (cmd) {
+            case "create" -> createGame(params);
+            case "list" -> listGames();
+            case "join" -> joinGame(params);
+            case "observe" -> observe(params);
+            case "logout" -> logout();
+            case "help" -> help();
+            case "quit" -> "quit";
+            default -> throw new InputException("Unknown command " + cmd);
+        };
+    }
+
+    private String evalUnauthenticated(String cmd, String... params) throws ResponseException,
+            InputException {
+        return switch (cmd) {
+            case "register" -> register(params);
+            case "login" -> login(params);
+            case "help" -> help();
+            case "quit" -> "quit";
+            default -> throw new InputException("Unknown command " + cmd);
+        };
+    }
+
+
     private String logout() throws ResponseException, InputException {
-        assertAuthState(true);
+        assertAuthState(ConsoleState.AUTHENTICATED);
         server.logout(authToken);
         authToken = null;
-        isAuthenticated = false;
+        state = ConsoleState.UNAUTHENTICATED;
         return "Logged out successfully.";
     }
 
     private String observe(String[] params) throws ResponseException, InputException {
         assertParamCount(params, 1);
-        assertAuthState(true);
+        assertAuthState(ConsoleState.AUTHENTICATED);
         try {
             int listID = Integer.parseInt(params[0]);
             GameData game = getGameByListID(listID);
@@ -111,7 +136,7 @@ public class ChessConsole {
 
     private String joinGame(String[] params) throws ResponseException, InputException {
         assertParamCount(params, 2);
-        assertAuthState(true);
+        assertAuthState(ConsoleState.AUTHENTICATED);
         try {
             int listID = Integer.parseInt(params[0]);
             String color = params[1].toUpperCase();
@@ -204,7 +229,7 @@ public class ChessConsole {
     }
 
     private String listGames() throws ResponseException, InputException {
-        assertAuthState(true);
+        assertAuthState(ConsoleState.AUTHENTICATED);
         var gameDataList = server.listGames(authToken).games();
         var gameList = new StringBuilder();
         for (int i = 0; i < gameDataList.size(); i++) {
@@ -223,7 +248,7 @@ public class ChessConsole {
 
     private String createGame(String[] params) throws ResponseException, InputException {
         assertParamCount(params, 1);
-        assertAuthState(true);
+        assertAuthState(ConsoleState.AUTHENTICATED);
         String name = params[0];
         var response = server.createGame(new CreateGameRequest(name), authToken);
         return "Successfully created game named " + name;
@@ -231,31 +256,34 @@ public class ChessConsole {
 
     private String login(String[] params) throws ResponseException, InputException {
         assertParamCount(params, 2);
-        assertAuthState(false);
+        assertAuthState(ConsoleState.UNAUTHENTICATED);
         String username = params[0];
         String password = params[1];
         var response = server.login(new LoginRequest(username, password));
         authToken = response.authToken();
-        isAuthenticated = true;
+        state = ConsoleState.AUTHENTICATED;
         return "Logged in as " + response.username();
     }
 
     private String register(String[] params) throws ResponseException, InputException {
         assertParamCount(params, 3);
-        assertAuthState(false);
+        assertAuthState(ConsoleState.AUTHENTICATED);
         String username = params[0];
         String password = params[1];
         String email = params[2];
         var response = server.register(new RegisterRequest(username, password, email));
         authToken = response.authToken();
-        isAuthenticated = true;
+        state = ConsoleState.AUTHENTICATED;
         return "Logged in as " + response.username();
     }
 
-    private void assertAuthState(boolean expectedState) throws InputException {
-        if (isAuthenticated != expectedState) {
-            var message = "Can't execute that command while " +
-                          (isAuthenticated ? "logged in." : "logged out.");
+    private void assertAuthState(ConsoleState expectedState) throws InputException {
+        if (state != expectedState) {
+            var message = "Can't execute that command while " + switch (state) {
+                case AUTHENTICATED -> "logged in.";
+                case UNAUTHENTICATED -> "logged out.";
+                case GAMEPLAY -> "playing a game.";
+            };
             throw new InputException(message);
         }
     }
@@ -269,7 +297,10 @@ public class ChessConsole {
     }
 
     private void printPrompt() {
-        System.out.printf(
-                RESET_TEXT_COLOR + "\n[%s] >>> ", isAuthenticated ? "LOGGED IN" : "LOGGED OUT");
+        System.out.printf(RESET_TEXT_COLOR + "\n[%s] >>> ", switch (state) {
+            case AUTHENTICATED -> "LOGGED IN";
+            case UNAUTHENTICATED -> "LOGGED OUT";
+            case GAMEPLAY -> "IN GAME";
+        });
     }
 }
