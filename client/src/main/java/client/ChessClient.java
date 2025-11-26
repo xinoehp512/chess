@@ -12,6 +12,7 @@ import server.ServerFacade;
 import ui.ChessConsole;
 import ui.ChessUI;
 import ui.InputException;
+import websocket.commands.UserGameCommand;
 import websocket.messages.ServerMessage;
 
 import static ui.ChessConsole.assertParamCount;
@@ -33,7 +34,7 @@ public class ChessClient implements NotificationObserver {
 
     public ChessClient(String serverURL) throws ResponseException {
         this.console = new ChessConsole(this);
-        server = new ServerFacade(serverURL,this);
+        server = new ServerFacade(serverURL, this);
     }
 
     public ConsoleState getState() {
@@ -92,6 +93,7 @@ public class ChessClient implements NotificationObserver {
         try {
             int listID = Integer.parseInt(params[0]);
             GameData gameData = getGameByListID(listID);
+            server.connect(gameData.gameID(),authToken);
             state = ConsoleState.GAMEPLAY;
             return String.format("Observing game %d.", listID);
 
@@ -110,6 +112,7 @@ public class ChessClient implements NotificationObserver {
             }
             GameData gameData = getGameByListID(listID);
             server.joinGame(new JoinGameRequest(color, gameData.gameID()), authToken);
+            server.connect(gameData.gameID(),authToken);
             state = ConsoleState.GAMEPLAY;
             return String.format("Joined game %d.", listID);
 
@@ -159,6 +162,6 @@ public class ChessClient implements NotificationObserver {
 
     @Override
     public void notify(ServerMessage serverMessage) {
-
+        console.notifyUser(serverMessage);
     }
 }

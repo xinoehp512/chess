@@ -29,6 +29,7 @@ public class ConnectionManager {
     public void send(ServerMessage serverMessage, Session session) throws IOException {
         String message = new Gson().toJson(serverMessage);
         if (session.isOpen()) {
+            System.out.println("Sending message: " + message);
             session.getRemote().sendString(message);
         }
     }

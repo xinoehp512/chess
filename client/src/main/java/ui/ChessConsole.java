@@ -5,6 +5,7 @@ import chess.ChessPiece;
 import client.ChessClient;
 import exception.ResponseException;
 import models.GameData;
+import websocket.messages.ServerMessage;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -218,6 +219,12 @@ public class ChessConsole implements ChessUI {
             case GAMEPLAY -> "PLAYING";
         });
     }
+
+    @Override
+    public void notifyUser(ServerMessage serverMessage) {
+        System.out.println(serverMessage.getMessage());
+    }
+
 
     public static void assertParamCount(String[] params, int paramCount) throws InputException {
         if (params.length != paramCount) {

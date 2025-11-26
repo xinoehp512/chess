@@ -127,6 +127,8 @@ public class Server {
     private void handleMessage(WsMessageContext wsMessageContext) {
         UserGameCommand command = serializer.fromJson(wsMessageContext.message(),
                 UserGameCommand.class);
+        System.out.println("Command Sent: " + command.getAuthToken() + " " +
+                           command.getCommandType().toString());
         try {
             try {
                 switch (command.getCommandType()) {
@@ -142,17 +144,22 @@ public class Server {
                                              case null -> "an observer.";
                                          };
                         connections.broadcast(gameID,
-                                new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message), wsMessageContext.session);
+                                new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
+                                        message), wsMessageContext.session);
 
                     }
                     case MAKE_MOVE -> {
                         WebSocketResponse response = gameService.makeMove(command);
                         int gameID = response.gameID();
-                        connections.broadcast(gameID,new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, response.game()), null);
+                        connections.broadcast(gameID,
+                                new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME,
+                                        response.game()), null);
 
                         String message =
                                 response.username() + " moved " + command.getMove().toString();
-                        connections.broadcast(gameID,new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message), wsMessageContext.session);
+                        connections.broadcast(gameID,
+                                new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
+                                        message), wsMessageContext.session);
                         String notification = switch (response.game().getGameState()) {
                             case CHECK -> "Check!";
                             case CHECKMATE -> "Checkmate!";
@@ -160,20 +167,23 @@ public class Server {
                             case NONE -> null;
                         };
                         if (notification != null) {
-                            connections.broadcast(gameID,new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, notification), null);
+                            connections.broadcast(gameID,
+                                    new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, notification), null);
                         }
                     }
                     case LEAVE -> {
                         WebSocketResponse response = gameService.leaveGame(command);
                         int gameID = response.gameID();
-                        connections.broadcast(gameID,new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
+                        connections.broadcast(gameID,
+                                new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
                                 response.username() + " left the game."), wsMessageContext.session);
-                        connections.remove(gameID,wsMessageContext.session);
+                        connections.remove(gameID, wsMessageContext.session);
                     }
                     case RESIGN -> {
                         WebSocketResponse response = gameService.resignGame(command);
                         int gameID = response.gameID();
-                        connections.broadcast(gameID,new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
+                        connections.broadcast(gameID,
+                                new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
                                 response.username() + " resigned."), null);
                     }
                 }

@@ -8,6 +8,7 @@ import requests.*;
 import response.CreateGameResponse;
 import response.ListGamesResponse;
 import response.LoginResponse;
+import websocket.commands.UserGameCommand;
 import websocket.messages.ServerMessage;
 
 import java.io.IOException;
@@ -36,9 +37,11 @@ public class ServerFacade extends Endpoint {
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();
             this.session = container.connectToServer(this, webSocketURI);
 
-            this.session.addMessageHandler((MessageHandler.Whole<String>) message -> {
-                ServerMessage serverMessage = new Gson().fromJson(message, ServerMessage.class);
-                notificationObserver.notify(serverMessage);
+            this.session.addMessageHandler(new MessageHandler.Whole<String>() {
+                public void onMessage(String message) {
+                    ServerMessage serverMessage = new Gson().fromJson(message, ServerMessage.class);
+                    notificationObserver.notify(serverMessage);
+                }
             });
         } catch (URISyntaxException | DeploymentException | IOException e) {
             throw new ResponseException(e.getMessage(), 500);
@@ -86,7 +89,6 @@ public class ServerFacade extends Endpoint {
     public void clear() throws ResponseException {
         performRequest("DELETE", "/db", null, null, null);
     }
-
 
     private <T> T performRequest(String method, String path, Request body, String authToken,
                                  Class<T> responseClass) throws ResponseException {
@@ -147,8 +149,21 @@ public class ServerFacade extends Endpoint {
         return status / 100 == 2;
     }
 
+    private void sendCommand(UserGameCommand command) throws ResponseException {
+        try {
+            this.session.getBasicRemote().sendText(new Gson().toJson(command));
+        } catch (IOException e) {
+            throw new ResponseException(e.getMessage(), 500);
+        }
+    }
+
+    public void connect(int gameID, String authToken) throws ResponseException {
+        sendCommand(new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, gameID));
+    }
+
     @Override
     public void onOpen(Session session, EndpointConfig endpointConfig) {
 
     }
+
 }
