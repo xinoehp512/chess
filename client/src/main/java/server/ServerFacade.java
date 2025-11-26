@@ -161,9 +161,12 @@ public class ServerFacade extends Endpoint {
         sendCommand(new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, gameID));
     }
 
+    public void leave(int gameID, String authToken) throws ResponseException {
+        sendCommand(new UserGameCommand(UserGameCommand.CommandType.LEAVE,authToken,gameID));
+    }
+
     @Override
     public void onOpen(Session session, EndpointConfig endpointConfig) {
 
     }
-
 }

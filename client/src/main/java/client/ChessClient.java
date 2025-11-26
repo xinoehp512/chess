@@ -24,7 +24,7 @@ public class ChessClient implements NotificationObserver {
 
     private String authToken = null;
 
-    private ChessGame currentGame;
+    private GameData currentGameData;
     private ChessGame.TeamColor userColor;
 
     private ConsoleState state = ConsoleState.UNAUTHENTICATED;
@@ -43,7 +43,7 @@ public class ChessClient implements NotificationObserver {
     }
 
     public ChessGame getCurrentGame() {
-        return currentGame;
+        return currentGameData.game();
     }
 
     public ChessGame.TeamColor getUserColor() {
@@ -97,7 +97,7 @@ public class ChessClient implements NotificationObserver {
             server.connect(gameData.gameID(), authToken);
             state = ConsoleState.GAMEPLAY;
             userColor = null;
-            currentGame = gameData.game();
+            currentGameData = gameData;
             return String.format("Observing game %d.", listID);
 
         } catch (NumberFormatException e) {
@@ -118,7 +118,7 @@ public class ChessClient implements NotificationObserver {
             server.connect(gameData.gameID(), authToken);
             state = ConsoleState.GAMEPLAY;
             userColor = parseColor(color);
-            currentGame = gameData.game();
+            currentGameData = gameData;
             return String.format("Joined game %d.", listID);
 
         } catch (NumberFormatException e) {
@@ -151,18 +151,19 @@ public class ChessClient implements NotificationObserver {
         return gameList.toString();
     }
 
-    public String move(String[] params) {
+    public String move(String[] params) throws ResponseException {
         return "Piece moved.";
     }
 
-    public String leave() {
+    public String leave() throws ResponseException {
+        server.leave(currentGameData.gameID(), authToken);
         state = ConsoleState.AUTHENTICATED;
         userColor = null;
-        currentGame = null;
+        currentGameData = null;
         return "Left the game.";
     }
 
-    public String resign() {
+    public String resign() throws ResponseException {
         return "Resigned.";
     }
 
@@ -171,7 +172,7 @@ public class ChessClient implements NotificationObserver {
     public void notify(ServerMessage serverMessage) {
         switch (serverMessage.getServerMessageType()) {
             case LOAD_GAME -> {
-                currentGame = serverMessage.game;
+                currentGameData = currentGameData.replaceGame(serverMessage.game);
                 console.showGame();
             }
             case ERROR -> {

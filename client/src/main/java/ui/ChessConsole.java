@@ -119,7 +119,7 @@ public class ChessConsole implements ChessUI {
         };
     }
 
-    private String evalGameplay(String cmd, String[] params) throws InputException {
+    private String evalGameplay(String cmd, String[] params) throws InputException, ResponseException {
         return switch (cmd) {
             case "redraw" -> redraw();
             case "highlight" -> highlight(params);
