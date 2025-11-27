@@ -7,19 +7,19 @@ import chess.ChessPosition;
 import client.ChessClient;
 import exception.ResponseException;
 import models.GameData;
+import requests.JoinGameRequest;
 import websocket.messages.ServerMessage;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Scanner;
+import java.util.*;
 
+import static chess.ChessGame.parseColor;
 import static ui.EscapeSequences.*;
 
 public class ChessConsole implements ChessUI {
 
 
     private final ChessClient client;
+    private Scanner scanner;
 
     public ChessConsole(ChessClient client) {
         this.client = client;
@@ -29,7 +29,7 @@ public class ChessConsole implements ChessUI {
         System.out.println("Welcome to ♕ 240 Chess Client.");
         System.out.print(help());
 
-        Scanner scanner = new Scanner(System.in);
+        scanner = new Scanner(System.in);
         String result = "";
         while (!Objects.equals(result, "quit")) {
             printPrompt();
@@ -64,7 +64,7 @@ public class ChessConsole implements ChessUI {
                       Squares are input <FILE><RANK>, e.g a1, e4.
                       redraw - the chess board
                       highlight <SQUARE> - legal moves
-                      move <START_SQUARE> <END_SQUARE> - a piece
+                      move <START_SQUARE> <END_SQUARE> [PROMOTION_PIECE] - a piece
                       leave - the game
                       resign - the game
                       help - with possible commands
@@ -273,6 +273,29 @@ public class ChessConsole implements ChessUI {
     public void showNotification(String message) {
         System.out.println(message);
         printPrompt();
+    }
+
+    @Override
+    public ChessPiece.PieceType promptPieceSelection(Set<ChessPiece.PieceType> pieceTypes) {
+        while (true) {
+            System.out.println("Choose a piece to promote to:");
+            List<ChessPiece.PieceType> sortedPieceTypes = pieceTypes.stream().sorted().toList();
+            for (int i = 0; i < sortedPieceTypes.size(); i++) {
+                System.out.println(i + ": " + sortedPieceTypes.get(i).toString());
+            }
+            String line = scanner.nextLine();
+            if (Objects.equals(line, "quit")){
+                return null;
+            }
+            try {
+                int listID = Integer.parseInt(line);
+                return sortedPieceTypes.get(listID);
+            } catch (NumberFormatException e) {
+                System.out.println(line + " is not a number.");
+            } catch (IndexOutOfBoundsException e) {
+                System.out.println(line + " is not in range.");
+            }
+        }
     }
 
 

@@ -44,8 +44,8 @@ public class ChessGame {
 
     public static TeamColor parseColor(String color) {
         return switch (color.toUpperCase()) {
-            case "BLACK" -> ChessGame.TeamColor.BLACK;
-            case "WHITE" -> ChessGame.TeamColor.WHITE;
+            case "BLACK" -> TeamColor.BLACK;
+            case "WHITE" -> TeamColor.WHITE;
             default -> throw new IllegalStateException("Unexpected value: " + color);
         };
     }
@@ -145,10 +145,29 @@ public class ChessGame {
             gameState = GameState.STALEMATE;
         } else if (isInCheck(currentTurn)) {
             gameState = GameState.CHECK;
+        } else {
+            gameState = GameState.NONE;
         }
         if (gameState == GameState.CHECKMATE || gameState == GameState.STALEMATE) {
             endGame();
         }
+    }
+
+
+    public boolean isPromotion(ChessPiece movedPiece, ChessPosition endPosition) {
+        if (movedPiece.getPieceType() != ChessPiece.PieceType.PAWN) {
+            return false;
+        }
+        return endPosition.getRow() == switch (movedPiece.getTeamColor()) {
+            case WHITE -> 8;
+            case BLACK -> 1;
+        };
+    }
+
+
+    public Set<ChessPiece.PieceType> promotionPieces(ChessPiece movedPiece) {
+        return Set.of(ChessPiece.PieceType.QUEEN, ChessPiece.PieceType.ROOK,
+                ChessPiece.PieceType.KNIGHT, ChessPiece.PieceType.BISHOP);
     }
 
 

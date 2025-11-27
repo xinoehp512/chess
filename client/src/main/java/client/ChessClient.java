@@ -1,6 +1,9 @@
 package client;
 
 import chess.ChessGame;
+import chess.ChessMove;
+import chess.ChessPiece;
+import chess.ChessPosition;
 import exception.ResponseException;
 import models.GameData;
 import requests.CreateGameRequest;
@@ -17,6 +20,7 @@ import websocket.messages.ServerMessage;
 
 import static chess.ChessGame.parseColor;
 import static ui.ChessConsole.assertParamCount;
+import static ui.ChessConsole.posFromString;
 
 public class ChessClient implements NotificationObserver {
     private final ChessUI console;
@@ -134,7 +138,7 @@ public class ChessClient implements NotificationObserver {
         return gameDataList.get(listID - 1);
     }
 
-    public String listGames() throws ResponseException, InputException {
+    public String listGames() throws ResponseException {
         var gameDataList = server.listGames(authToken).games();
         var gameList = new StringBuilder();
         for (int i = 0; i < gameDataList.size(); i++) {
@@ -151,7 +155,36 @@ public class ChessClient implements NotificationObserver {
         return gameList.toString();
     }
 
-    public String move(String[] params) throws ResponseException {
+    public String move(String[] params) throws ResponseException, InputException {
+        assertParamCount(params, 2);
+        String startSquare = params[0];
+        String endSquare = params[1];
+        ChessPosition startPosition = posFromString(startSquare);
+        ChessPosition endPosition = posFromString(endSquare);
+
+        var game = currentGameData.game();
+        ChessPiece movedPiece = game.getBoard().getPiece(startPosition);
+//        if (movedPiece.getTeamColor() != userColor) {
+//            throw new InputException("Can't move a piece that isn't your color!");
+//        }
+        if (userColor != game.getTeamTurn()) {
+            throw new InputException("Can't move when it isn't your turn!");
+        }
+        ChessPiece.PieceType promotionPiece = null;
+        if (game.isPromotion(movedPiece, endPosition)) {
+            promotionPiece = console.promptPieceSelection(game.promotionPieces(movedPiece));
+            if (promotionPiece == null) {
+                return "Move cancelled.";
+            }
+        }
+
+        var move = new ChessMove(startPosition, endPosition, promotionPiece);
+        if (!game.validMoves(startPosition).contains(move)) {
+            throw new InputException("Illegal move!");
+        }
+
+        server.move(currentGameData.gameID(), authToken, move);
+
         return "Piece moved.";
     }
 

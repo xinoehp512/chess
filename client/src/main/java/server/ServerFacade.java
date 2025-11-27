@@ -1,5 +1,6 @@
 package server;
 
+import chess.ChessMove;
 import com.google.gson.Gson;
 import exception.ResponseException;
 import jakarta.websocket.*;
@@ -162,7 +163,12 @@ public class ServerFacade extends Endpoint {
     }
 
     public void leave(int gameID, String authToken) throws ResponseException {
-        sendCommand(new UserGameCommand(UserGameCommand.CommandType.LEAVE,authToken,gameID));
+        sendCommand(new UserGameCommand(UserGameCommand.CommandType.LEAVE, authToken, gameID));
+    }
+
+    public void move(int gameID, String authToken, ChessMove move) throws ResponseException {
+        sendCommand(new UserGameCommand(UserGameCommand.CommandType.MAKE_MOVE, authToken, gameID,
+                move));
     }
 
     @Override

@@ -1,6 +1,8 @@
 package ui;
 
-import websocket.messages.ServerMessage;
+import chess.ChessPiece;
+
+import java.util.Set;
 
 public interface ChessUI {
     void run();
@@ -10,4 +12,6 @@ public interface ChessUI {
     void showError(String errorMessage);
 
     void showNotification(String message);
+
+    ChessPiece.PieceType promptPieceSelection(Set<ChessPiece.PieceType> pieceTypes);
 }

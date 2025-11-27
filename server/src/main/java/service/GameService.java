@@ -81,10 +81,15 @@ public class GameService {
             throw new ResponseException("Error: can't move when game is over.", 400);
         }
         if (playerColor != game.getTeamTurn()) {
-            throw new ResponseException("Error: can't move for opponent.", 400);
+            throw new ResponseException("Error: can't move on opponent's turn.", 400);
         }
 
         ChessMove move = command.getMove();
+        var movedPiece = game.getBoard().getPiece(move.getStartPosition());
+        if (playerColor != movedPiece.getTeamColor()) {
+            throw new ResponseException("Error: can't move for opponent.", 400);
+        }
+
         try {
             game.makeMove(move);
         } catch (InvalidMoveException e) {
