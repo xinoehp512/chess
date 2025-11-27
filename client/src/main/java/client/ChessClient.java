@@ -164,9 +164,9 @@ public class ChessClient implements NotificationObserver {
 
         var game = currentGameData.game();
         ChessPiece movedPiece = game.getBoard().getPiece(startPosition);
-//        if (movedPiece.getTeamColor() != userColor) {
-//            throw new InputException("Can't move a piece that isn't your color!");
-//        }
+        if (movedPiece.getTeamColor() != userColor) {
+            throw new InputException("Can't move a piece that isn't your color!");
+        }
         if (userColor != game.getTeamTurn()) {
             throw new InputException("Can't move when it isn't your turn!");
         }
@@ -197,6 +197,7 @@ public class ChessClient implements NotificationObserver {
     }
 
     public String resign() throws ResponseException {
+        server.resign(currentGameData.gameID(), authToken);
         return "Resigned.";
     }
 

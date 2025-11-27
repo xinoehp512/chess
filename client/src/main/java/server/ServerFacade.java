@@ -171,6 +171,10 @@ public class ServerFacade extends Endpoint {
                 move));
     }
 
+    public void resign(int gameID, String authToken) throws ResponseException {
+        sendCommand(new UserGameCommand(UserGameCommand.CommandType.RESIGN, authToken, gameID));
+    }
+
     @Override
     public void onOpen(Session session, EndpointConfig endpointConfig) {
 
