@@ -124,7 +124,7 @@ public class ChessConsole implements ChessUI {
             case "highlight" -> highlight(params);
             case "move" -> client.move(params);
             case "leave" -> client.leave();
-            case "resign" -> client.resign();
+            case "resign" -> resignConfirm();
             case "help" -> help();
             case "register", "login" ->
                     throw new InputException("Can't use that command while logged in.");
@@ -292,6 +292,19 @@ public class ChessConsole implements ChessUI {
                 System.out.println(line + " is not in range.");
             }
         }
+    }
+
+
+    private String resignConfirm() throws ResponseException {
+        System.out.println("Are you sure? (Y/N)");
+        String answer = scanner.nextLine().toLowerCase();
+        if (Objects.equals(answer,"n")) {
+            return "Cancelled.";
+        }
+        if (Objects.equals(answer,"y")) {
+            return client.resign();
+        }
+        return "Unknown response. Resign cancelled.";
     }
 
 

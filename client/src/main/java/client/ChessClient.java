@@ -166,6 +166,9 @@ public class ChessClient implements NotificationObserver {
             throw new InputException("Error: can't move when game is over.");
         }
         ChessPiece movedPiece = game.getBoard().getPiece(startPosition);
+        if (movedPiece == null) {
+            throw new InputException("No piece at that location!");
+        }
         if (movedPiece.getTeamColor() != userColor) {
             throw new InputException("Can't move a piece that isn't your color!");
         }

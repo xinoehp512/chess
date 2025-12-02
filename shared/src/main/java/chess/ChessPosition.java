@@ -53,6 +53,6 @@ public class ChessPosition {
 
         String files = "abcdefgh";
         String ranks = "12345678";
-        return String.format("%c%c", files.charAt(col - 1), files.charAt(row - 1));
+        return String.format("%c%c", files.charAt(col - 1), ranks.charAt(row - 1));
     }
 }
