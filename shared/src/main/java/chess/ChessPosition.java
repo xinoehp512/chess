@@ -50,9 +50,9 @@ public class ChessPosition {
 
     @Override
     public String toString() {
-        return "ChessPosition{" +
-                "row=" + row +
-                ", col=" + col +
-                '}';
+
+        String files = "abcdefgh";
+        String ranks = "12345678";
+        return String.format("%c%c", files.charAt(col - 1), files.charAt(row - 1));
     }
 }
