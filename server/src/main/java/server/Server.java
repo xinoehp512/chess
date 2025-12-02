@@ -168,7 +168,7 @@ public class Server {
                         };
                         if (notification != null) {
                             connections.broadcast(gameID,
-                                    new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, notification), null);
+                                    new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, response.opponentUsername()+ " is in " + notification), null);
                         }
                     }
                     case LEAVE -> {

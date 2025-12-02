@@ -20,4 +20,11 @@ public record WebSocketResponse(GameData gameData, AuthData auth) {
     public int gameID() {
         return gameData.gameID();
     }
+
+    public String opponentUsername() {
+        return switch (playerColor()) {
+            case WHITE -> gameData.blackUsername();
+            case BLACK -> gameData.whiteUsername();
+        };
+    }
 }
