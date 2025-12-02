@@ -172,14 +172,15 @@ public class ChessConsole implements ChessUI {
 
         boolean reversed = (colorPerspective == TeamColor.BLACK);
 
-
-        boardStr.append(borderFormat);
-        for (int i = 0; i < edgeRow.length(); i++) {
-            var idx = reversed ? edgeRow.length() - i - 1 : i;
-            char character = edgeRow.charAt(idx);
-            boardStr.append(String.format(" %c ", character));
-        }
-
+        Runnable printRow = () -> {
+            boardStr.append(borderFormat);
+            for (int i = 0; i < edgeRow.length(); i++) {
+                var idx = reversed ? edgeRow.length() - i - 1 : i;
+                char character = edgeRow.charAt(idx);
+                boardStr.append(String.format(" %c ", character));
+            }
+        };
+        printRow.run();
         TeamColor squareColor = TeamColor.WHITE;
         boardStr.append(RESET_BG_COLOR + "\n");
         for (int i = 0; i < board.length; i++) {
@@ -219,12 +220,7 @@ public class ChessConsole implements ChessUI {
             boardStr.append(RESET_BG_COLOR + "\n");
             squareColor = squareColor == TeamColor.WHITE ? TeamColor.BLACK : TeamColor.WHITE;
         }
-        boardStr.append(borderFormat);
-        for (int i = 0; i < edgeRow.length(); i++) {
-            var idx = reversed ? edgeRow.length() - i - 1 : i;
-            char character = edgeRow.charAt(idx);
-            boardStr.append(String.format(" %c ", character));
-        }
+        printRow.run();
         System.out.print(boardStr.toString());
 
         return RESET_BG_COLOR + RESET_TEXT_COLOR;
@@ -298,10 +294,10 @@ public class ChessConsole implements ChessUI {
     private String resignConfirm() throws ResponseException {
         System.out.println("Are you sure? (Y/N)");
         String answer = scanner.nextLine().toLowerCase();
-        if (Objects.equals(answer,"n")) {
+        if (Objects.equals(answer, "n")) {
             return "Cancelled.";
         }
-        if (Objects.equals(answer,"y")) {
+        if (Objects.equals(answer, "y")) {
             return client.resign();
         }
         return "Unknown response. Resign cancelled.";

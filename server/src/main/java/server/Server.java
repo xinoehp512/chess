@@ -9,9 +9,16 @@ import io.javalin.http.Context;
 import io.javalin.websocket.WsCloseContext;
 import io.javalin.websocket.WsConnectContext;
 import io.javalin.websocket.WsMessageContext;
+import org.eclipse.jetty.websocket.api.Session;
 import org.jetbrains.annotations.NotNull;
-import requests.*;
-import response.*;
+import requests.CreateGameRequest;
+import requests.JoinGameRequest;
+import requests.LoginRequest;
+import requests.RegisterRequest;
+import response.CreateGameResponse;
+import response.ListGamesResponse;
+import response.LoginResponse;
+import response.WebSocketResponse;
 import server.websocket.ConnectionManager;
 import service.AdminService;
 import service.GameService;
@@ -127,72 +134,78 @@ public class Server {
     private void handleMessage(WsMessageContext wsMessageContext) {
         UserGameCommand command = serializer.fromJson(wsMessageContext.message(),
                 UserGameCommand.class);
+        Session session = wsMessageContext.session;
         System.out.println("Command Sent: " + command.getAuthToken() + " " +
                            command.getCommandType().toString());
         try {
             try {
-                switch (command.getCommandType()) {
-                    case CONNECT -> {
-                        WebSocketResponse response = gameService.enterGame(command);
-                        int gameID = response.gameID();
-                        connections.add(gameID, wsMessageContext.session);
-                        connections.send(new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, response.game()), wsMessageContext.session);
-                        String message = response.username() + " joined as " +
-                                         switch (response.playerColor()) {
-                                             case WHITE -> "White.";
-                                             case BLACK -> "Black.";
-                                             case null -> "an observer.";
-                                         };
-                        connections.broadcast(gameID,
-                                new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
-                                        message), wsMessageContext.session);
-
-                    }
-                    case MAKE_MOVE -> {
-                        WebSocketResponse response = gameService.makeMove(command);
-                        int gameID = response.gameID();
-                        connections.broadcast(gameID,
-                                new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME,
-                                        response.game()), null);
-
-                        String message =
-                                response.username() + " moved " + command.getMove().toString();
-                        connections.broadcast(gameID,
-                                new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
-                                        message), wsMessageContext.session);
-                        String notification = switch (response.game().getGameState()) {
-                            case CHECK -> "Check!";
-                            case CHECKMATE -> "Checkmate!";
-                            case STALEMATE -> "Stalemate!";
-                            case NONE -> null;
-                        };
-                        if (notification != null) {
-                            connections.broadcast(gameID,
-                                    new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, response.opponentUsername()+ " is in " + notification), null);
-                        }
-                    }
-                    case LEAVE -> {
-                        WebSocketResponse response = gameService.leaveGame(command);
-                        int gameID = response.gameID();
-                        connections.broadcast(gameID,
-                                new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
-                                response.username() + " left the game."), wsMessageContext.session);
-                        connections.remove(gameID, wsMessageContext.session);
-                    }
-                    case RESIGN -> {
-                        WebSocketResponse response = gameService.resignGame(command);
-                        int gameID = response.gameID();
-                        connections.broadcast(gameID,
-                                new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
-                                response.username() + " resigned."), null);
-                    }
-                }
+                executeCommand(command, session);
             } catch (ResponseException e) {
                 connections.send(new ServerMessage(ServerMessage.ServerMessageType.ERROR,
-                        e.getMessage()), wsMessageContext.session);
+                        e.getMessage()), session);
             }
         } catch (IOException | DataAccessException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void executeCommand(UserGameCommand command, Session session) throws ResponseException, DataAccessException, IOException {
+        switch (command.getCommandType()) {
+            case CONNECT -> {
+                WebSocketResponse response = gameService.enterGame(command);
+                int gameID = response.gameID();
+                connections.add(gameID, session);
+                connections.send(new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME,
+                        response.game()), session);
+                String message =
+                        response.username() + " joined as " + switch (response.playerColor()) {
+                            case WHITE -> "White.";
+                            case BLACK -> "Black.";
+                            case null -> "an observer.";
+                        };
+                connections.broadcast(gameID,
+                        new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message),
+                        session);
+
+            }
+            case MAKE_MOVE -> {
+                WebSocketResponse response = gameService.makeMove(command);
+                int gameID = response.gameID();
+                connections.broadcast(gameID,
+                        new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME,
+                                response.game()), null);
+
+                String message = response.username() + " moved " + command.getMove().toString();
+                connections.broadcast(gameID,
+                        new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message),
+                        session);
+                String notification = switch (response.game().getGameState()) {
+                    case CHECK -> "Check!";
+                    case CHECKMATE -> "Checkmate!";
+                    case STALEMATE -> "Stalemate!";
+                    case NONE -> null;
+                };
+                if (notification != null) {
+                    connections.broadcast(gameID,
+                            new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
+                            response.opponentUsername() + " is in " + notification), null);
+                }
+            }
+            case LEAVE -> {
+                WebSocketResponse response = gameService.leaveGame(command);
+                int gameID = response.gameID();
+                connections.broadcast(gameID,
+                        new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
+                        response.username() + " left the game."), session);
+                connections.remove(gameID, session);
+            }
+            case RESIGN -> {
+                WebSocketResponse response = gameService.resignGame(command);
+                int gameID = response.gameID();
+                connections.broadcast(gameID,
+                        new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION,
+                        response.username() + " resigned."), null);
+            }
         }
     }
 

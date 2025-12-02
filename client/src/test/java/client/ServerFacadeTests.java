@@ -24,7 +24,7 @@ public class ServerFacadeTests {
     public static void init() throws ResponseException {
         server = new Server();
         var port = server.run(0);
-        System.out.println("Started test HTTP server on " + port);
+        System.out.println("Started test HTTP server for ServerFacade on " + port);
         serverFacade = new ServerFacade("http://localhost:" + Integer.toString(port));
     }
 
@@ -46,7 +46,7 @@ public class ServerFacadeTests {
 
         @Test
         void registerNewUser() throws Exception {
-            String username = "xinoehp512";
+            String username = "not_xinoehp512";
             var auth = serverFacade.register(new RegisterRequest(username, "$ecureP4ssw0rd",
                     "xinoehp512@gmail.com"));
             assertNotNull(auth.authToken());
@@ -55,7 +55,7 @@ public class ServerFacadeTests {
 
         @Test
         void registerDuplicateUsername() throws Exception {
-            String username = "Bob";
+            String username = "NotBob";
             serverFacade.register(new RegisterRequest(username, "password", "bob@gmail.com"));
             assertThrows(ResponseException.class,
                     () -> serverFacade.register(new RegisterRequest(username, "12345",
@@ -64,7 +64,7 @@ public class ServerFacadeTests {
 
         @Test
         void login() throws Exception {
-            String username = "xinoehp512";
+            String username = "not_xinoehp512";
             String password = "$ecureP4ssw0rd";
             String email = "xinoehp512@gmail.com";
             serverFacade.register(new RegisterRequest(username, password, email));
@@ -95,7 +95,7 @@ public class ServerFacadeTests {
 
         @Test
         void loginWrongUsername() throws Exception {
-            String username = "xinoehp512";
+            String username = "not_xinoehp512";
             String password = "$ecureP4ssw0rd";
             String email = "xinoehp512@gmail.com";
             serverFacade.register(new RegisterRequest(username, password, email));
