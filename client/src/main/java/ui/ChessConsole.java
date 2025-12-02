@@ -1,18 +1,13 @@
 package ui;
 
 import chess.ChessGame.TeamColor;
-import chess.ChessMove;
 import chess.ChessPiece;
 import chess.ChessPosition;
 import client.ChessClient;
 import exception.ResponseException;
-import models.GameData;
-import requests.JoinGameRequest;
-import websocket.messages.ServerMessage;
 
 import java.util.*;
 
-import static chess.ChessGame.parseColor;
 import static ui.EscapeSequences.*;
 
 public class ChessConsole implements ChessUI {

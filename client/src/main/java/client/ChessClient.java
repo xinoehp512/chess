@@ -15,7 +15,6 @@ import server.ServerFacade;
 import ui.ChessConsole;
 import ui.ChessUI;
 import ui.InputException;
-import websocket.commands.UserGameCommand;
 import websocket.messages.ServerMessage;
 
 import static chess.ChessGame.parseColor;
