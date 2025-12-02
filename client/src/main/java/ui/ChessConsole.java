@@ -253,14 +253,15 @@ public class ChessConsole implements ChessUI {
     @Override
     public void showGame() {
         System.out.println();
-        System.out.print(displayBoard() + RESET_TEXT_COLOR);
+        System.out.print(displayBoard() + RESET_BG_COLOR + RESET_TEXT_COLOR);
         System.out.println();
         printPrompt();
     }
 
     @Override
     public void showError(String errorMessage) {
-        System.out.println(errorMessage);
+        System.out.println();
+        System.out.println(SET_TEXT_COLOR_RED + errorMessage + RESET_TEXT_COLOR);
         printPrompt();
     }
 
@@ -279,7 +280,7 @@ public class ChessConsole implements ChessUI {
                 System.out.println(i + ": " + sortedPieceTypes.get(i).toString());
             }
             String line = scanner.nextLine();
-            if (Objects.equals(line, "quit")){
+            if (Objects.equals(line, "quit")) {
                 return null;
             }
             try {
